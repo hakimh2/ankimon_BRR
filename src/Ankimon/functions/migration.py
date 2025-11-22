@@ -1,6 +1,6 @@
 import json
 from aqt.utils import showWarning
-from ..resources import mainpokemon_path, mypokemon_path, starters_path
+from ..resources import mainpokemon_path, mypokemon_path
 
 def get_starter_evolution_ids(starter_id: int) -> list[int]:
     """
@@ -8,6 +8,33 @@ def get_starter_evolution_ids(starter_id: int) -> list[int]:
     Assumes a linear evolution path of n, n+1, n+2.
     """
     return [starter_id, starter_id + 1, starter_id + 2]
+
+affected_starters = [
+    1,  # bulbasaur
+    4,  # charmander
+    7,  # squirtle
+    152,  # chikorita
+    155,  # cyndaquil
+    158,  # totodile
+    252,  # treecko
+    255,  # torchic
+    258,  # mudkip
+    387,  # turtwig
+    390,  # chimchar
+    393,  # piplup
+    495,  # snivy
+    498,  # tepig
+    501,  # oshawott
+    650,  # chespin
+    653,  # fennekin
+    656,  # froakie
+    722,  # rowlet
+    725,  # litten
+    728,  # popplio
+    810,  # grookey
+    813,  # scorbunny
+    816,  # sobble
+]
 
 def migrate_starter_individual_id():
     """
@@ -26,8 +53,6 @@ def migrate_starter_individual_id():
             main_pokemon_data = json.load(f)
         with open(mypokemon_path, "r", encoding="utf-8") as f:
             my_pokemon_data = json.load(f)
-        with open(starters_path, "r", encoding="utf-8") as f:
-            starters_data = json.load(f)
     except (json.JSONDecodeError, IOError):
         # Files might be empty or corrupted, so we can't proceed.
         return
@@ -50,8 +75,7 @@ def migrate_starter_individual_id():
 
     # Get all starter and starter evolution IDs
     all_starter_evolution_ids = []
-    for starter_info in starters_data.values():
-        starter_id = int(starter_info["id"])
+    for starter_id in affected_starters:
         all_starter_evolution_ids.extend(get_starter_evolution_ids(starter_id))
 
     if main_pokemon_id not in all_starter_evolution_ids:

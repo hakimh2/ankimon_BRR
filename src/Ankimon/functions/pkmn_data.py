@@ -95,6 +95,33 @@ ULTRA = [
     806,  # blacephalon
 ]
 
+STARTER = [
+    "bulbasaur",
+    "charmander",
+    "squirtle",
+    "chikorita",
+    "cyndaquil",
+    "totodile",
+    "treecko",
+    "torchic",
+    "mudkip",
+    "turtwig",
+    "chimchar",
+    "piplup",
+    "snivy",
+    "tepig",
+    "oshawott",
+    "chespin",
+    "fennekin",
+    "froakie",
+    "rowlet",
+    "litten",
+    "popplio",
+    "grookey",
+    "scorbunny",
+    "sobble",
+]
+
 NORMAL = [
     10,  # caterpie
     11,  # metapod

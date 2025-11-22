@@ -107,10 +107,6 @@
                     "type": "file"
                 },
                 {
-                    "name": "starters.json",
-                    "type": "file"
-                },
-                {
                     "name": "table_gen_id.html",
                     "type": "file"
                 },

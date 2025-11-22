@@ -44,7 +44,6 @@ pokedesc_lang_path = addon_dir / "user_files" / "data_files" / "pokemon_species_
 poke_evo_path = addon_dir / "user_files" / "data_files" / "pokemon_evolution.csv"
 poke_species_path = addon_dir / "user_files" / "data_files" / "pokemon_species.csv"
 pokeapi_db_path = user_path_data / "pokeapi_db.json"
-starters_path = addon_dir / "addon_files" / "starters.json"
 eff_chart_html_path = addon_dir / "addon_files" / "eff_chart_html.html"
 effectiveness_chart_file_path = addon_dir / "addon_files" / "eff_chart.json"
 table_gen_id_html_path = addon_dir / "addon_files" / "table_gen_id.html"
