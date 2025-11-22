@@ -23,4 +23,7 @@ STARTER = [
     "grookey",
     "scorbunny",
     "sobble",
+    "sprigatito",
+    "fuecoco",
+    "quaxly",
 ]

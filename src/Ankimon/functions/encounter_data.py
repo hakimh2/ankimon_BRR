@@ -45,6 +45,15 @@ LEGENDARY = [
     896,  # glastrier
     897,  # spectrier
     898,  # calyrex
+    # Generation 9
+    1007,  # koraidon
+    1008,  # miraidon
+    1014,  # okidogi
+    1015,  # munkidori
+    1016,  # fezandipiti
+    1017,  # ogerpon
+    1024,  # terapagos
+    1025,  # pecharunt
 ]
 
 MYTHICAL = [
@@ -326,6 +335,7 @@ NORMAL = [
     246,  # larvitar
     247,  # pupitar
     248,  # tyranitar
+    # Generation 3
     261,  # poochyena
     262,  # mightyena
     263,  # zigzagoon
@@ -812,4 +822,115 @@ NORMAL = [
     885,  # dreepy
     886,  # drakloak
     887,  # dragapult
+    899,  # wyrdeer
+    900,  # kleavor
+    901,  # ursaluna
+    902,  # basculegion
+    903,  # sneasler
+    904,  # overqwil
+    905,  # enamorus
+    # Generation 9
+    915,  # lechonk
+    916,  # oinkologne
+    917,  # tarountula
+    918,  # spidops
+    919,  # nymble
+    920,  # lokix
+    921,  # pawmi
+    922,  # pawmo
+    923,  # pawmot
+    924,  # tandemaus
+    925,  # maushold
+    926,  # fidough
+    927,  # dachsbun
+    928,  # smoliv
+    929,  # dolliv
+    930,  # arboliva
+    931,  # squawkabilly
+    932,  # nacli
+    933,  # naclstack
+    934,  # garganacl
+    935,  # charcadet
+    936,  # armarouge
+    937,  # ceruledge
+    938,  # tadbulb
+    939,  # bellibolt
+    940,  # wattrel
+    941,  # kilowattrel
+    942,  # maschiff
+    943,  # mabosstiff
+    944,  # shroodle
+    945,  # grafaiai
+    946,  # bramblin
+    947,  # brambleghast
+    948,  # toedscool
+    949,  # toedscruel
+    950,  # klawf
+    951,  # capsakid
+    952,  # scovillain
+    953,  # rellor
+    954,  # rabsca
+    955,  # flittle
+    956,  # espathra
+    957,  # tinkatink
+    958,  # tinkatuff
+    959,  # tinkaton
+    960,  # wiglett
+    961,  # wugtrio
+    962,  # bombirdier
+    963,  # finizen
+    964,  # palafin
+    965,  # varoom
+    966,  # revavroom
+    967,  # cyclizar
+    968,  # orthworm
+    969,  # glimmet
+    970,  # glimmora
+    971,  # greavard
+    972,  # houndstone
+    973,  # flamigo
+    974,  # cetoddle
+    975,  # cetitan
+    976,  # veluza
+    977,  # dondozo
+    978,  # tatsugiri
+    979,  # annihilape
+    980,  # clodsire
+    981,  # farigiraf
+    982,  # dudunsparce
+    983,  # kingambit
+    984,  # greattusk
+    985,  # screamtail
+    986,  # brutebonnet
+    987,  # fluttermane
+    988,  # slitherwing
+    989,  # sandyshocks
+    990,  # irontreads
+    991,  # ironbundle
+    992,  # ironhands
+    993,  # ironjugulis
+    994,  # ironmoth
+    995,  # ironthorns
+    996,  # frigibax
+    997,  # arctibax
+    998,  # baxcalibur
+    999,  # gimmighoul
+    1000,  # gholdengo
+    1001,  # wochien
+    1002,  # chienpao
+    1003,  # tinglu
+    1004,  # chiyu
+    1005,  # roaringmoon
+    1006,  # ironvaliant
+    1009,  # walkingwake
+    1010,  # ironleaves
+    1011,  # dipplin
+    1012,  # poltchageist
+    1013,  # sinistcha
+    1018,  # archaludon
+    1019,  # hydrapple
+    1020,  # gougingfire
+    1021,  # ragingbolt
+    1022,  # ironboulder
+    1023,  # ironcrown
 ]
