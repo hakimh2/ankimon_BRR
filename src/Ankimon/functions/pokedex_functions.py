@@ -158,7 +158,7 @@ def get_growth_rate(species_id: int) -> str:
             if int(row["id"]) == species_id:
                 return GROWTH_RATES[int(row["growth_rate_id"])]
 
-    raise Exception()
+    raise ValueError(species_id)
 
 def get_base_experience(name: str) -> int:
     with open(pokemon_csv, mode="r", encoding="utf-8") as file:
@@ -168,7 +168,7 @@ def get_base_experience(name: str) -> int:
             if row["identifier"].replace("-", "") == name.lower():
                 return int(row["base_experience"])
 
-    raise Exception()
+    raise ValueError(name)
 
 STATS = {
     1: "hp",
