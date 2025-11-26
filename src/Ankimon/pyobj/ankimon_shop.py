@@ -325,9 +325,9 @@ class PokemonShopManager:
         # Item image
         image_label = QLabel()
         if is_tm:
-            image_path = items_path / f"Bag_TM_{find_details_move(item["name"])["type"].lower()}_SV_Sprite.png"
+            image_path = items_path / f"Bag_TM_{(find_details_move(item['name']) or {}).get('type', 'Normal')}_SV_Sprite.png"
         else:
-            image_path = f"{items_path}/{item["name"]}.png"
+            image_path = f"{items_path}/{item['name']}.png"
 
         pixmap = QPixmap(str(image_path))
         image_label.setPixmap(pixmap.scaled(56, 56, Qt.AspectRatioMode.KeepAspectRatio))
