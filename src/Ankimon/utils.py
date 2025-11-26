@@ -4,6 +4,7 @@ import requests
 import json
 import random
 import csv
+from typing import Optional
 
 from aqt import mw
 from aqt.utils import showWarning, showInfo
@@ -380,7 +381,7 @@ def daily_item_list():
     return item_names
 
 # Function to give an item to the player
-def give_item(item_name, item_type: str | None=None):
+def give_item(item_name: str, item_type: Optional[str] = None):
     with open(itembag_path, "r", encoding="utf-8") as json_file:
         itembag_list = json.load(json_file)
         # Check if the item exists and update quantity, otherwise append
@@ -838,7 +839,7 @@ def get_ev_spread(mode: str="random") -> dict[str, int]:
 
     raise ValueError(f"Received unknown value for 'mode': {mode}")
 
-def get_tier_by_id(pokemon_id: int) -> str | None:
+def get_tier_by_id(pokemon_id: int) -> Optional[str]:
     """
     Determines the tier category of a Pokémon based on its ID.
 
@@ -861,7 +862,7 @@ def get_tier_by_id(pokemon_id: int) -> str | None:
 
 def safe_get_random_move(
     pokemon_moves: list[str],
-    logger: ShowInfoLogger | None = None
+    logger: Optional[ShowInfoLogger] = None
 ) -> dict:
     """
     Attempts to retrieve details of a randomly selected move from a list of Pokémon moves.

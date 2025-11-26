@@ -20,6 +20,7 @@ except ModuleNotFoundError:
 import json
 import random
 import copy
+from typing import Union
 
 import aqt
 from anki.hooks import addHook, wrap
@@ -256,7 +257,7 @@ def download_changelog():
         return e
 
 if online_connectivity and ssh:
-    def done(result: Exception | str | None):
+    def done(result: Union[Exception, str, None]):
         if isinstance(result, Exception):
             show_warning_with_traceback(parent=mw, exception=result, message="Error connecting to GitHub:")
             return

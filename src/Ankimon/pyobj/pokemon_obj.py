@@ -2,6 +2,7 @@ from typing import Union
 import uuid
 import json
 import os
+from typing import Optional
 
 from ..poke_engine.objects import Pokemon
 from ..resources import pkmnimgfolder, mainpokemon_path, mypokemon_path
@@ -19,7 +20,7 @@ class PokemonObject:
         ability,
         gender: str,
         growth_rate: str,
-        captured_date: str | None,
+        captured_date: Optional[str],
         tier: str,
         individual_id: str,
 

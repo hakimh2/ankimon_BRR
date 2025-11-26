@@ -1,7 +1,7 @@
 from pathlib import Path
 import random
 import json
-from typing import Any
+from typing import Any, Optional
 
 from aqt import mw
 from aqt.qt import (
@@ -267,7 +267,7 @@ class ItemWindow(QWidget):
                 row += 1
                 col = 0
 
-    def ItemLabel(self, item_name: str, quantity: int, item_type: str | None):
+    def ItemLabel(self, item_name: str, quantity: int, item_type: Optional[str]):
         item_frame = QVBoxLayout()  # itemframe
         info_item_button = QPushButton("More Info")
         info_item_button.clicked.connect(lambda: self.more_info_button_act(item_name))
@@ -280,7 +280,7 @@ class ItemWindow(QWidget):
         item_name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         if item_type == "TM":
-            item_file_path = items_path / f"Bag_TM_{find_details_move(item_name)["type"].lower()}_SV_Sprite.png"
+            item_file_path = items_path / f"Bag_TM_{find_details_move(item_name)['type'].lower()}_SV_Sprite.png"
         else:
             item_file_path = items_path / f"{item_name}.png"
         item_picture_pixmap = QPixmap(str(item_file_path))
