@@ -127,9 +127,11 @@ def search_pokedex_by_id(pokemon_id):
     with open(str(pokedex_path), "r", encoding="utf-8") as json_file:
         pokedex_data = json.load(json_file)
         for entry_name, attributes in pokedex_data.items():
+            if "num" not in attributes:
+                    continue   #skip entries without num attribute in pokedex (most pokemon variants for new gens)        
             if attributes["num"] == pokemon_id:
-                return entry_name
-    return "Pokémon not found"
+                return entry_name            
+        return "Pokémon not found"
 
 
 def get_mainpokemon_evo(pokemon_name):
