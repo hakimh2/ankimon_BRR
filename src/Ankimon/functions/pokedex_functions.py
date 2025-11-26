@@ -131,7 +131,7 @@ def search_pokedex_by_id(pokemon_id):
                 continue   #skip entries without num attribute in pokedex (most pokemon variants for new gens)        
             if attributes["num"] == pokemon_id:
                 return entry_name            
-        return "Pokémon not found"
+    return "Pokémon not found"
 
 
 def get_mainpokemon_evo(pokemon_name):
