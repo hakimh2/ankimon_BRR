@@ -12,23 +12,23 @@ LEGENDARY = [
     638,  # cobalion
     639,  # terrakion
     640,  # virizion
-    641,  # tornadus
-    642,  # thundurus
+    641,  # tornadus-incarnate
+    642,  # thundurus-incarnate
     643,  # reshiram
     644,  # zekrom
-    645,  # landorus
+    645,  # landorus-incarnate
     646,  # kyurem
     # Generation 6
     716,  # xerneas
     717,  # yveltal
-    718,  # zygarde
+    718,  # zygarde-50
     # Generation 7
-    772,  # typenull
+    772,  # type-null
     773,  # silvally
-    785,  # tapukoko
-    786,  # tapulele
-    787,  # tapubulu
-    788,  # tapufini
+    785,  # tapu-koko
+    786,  # tapu-lele
+    787,  # tapu-bulu
+    788,  # tapu-fini
     789,  # cosmog
     790,  # cosmoem
     791,  # solgaleo
@@ -39,7 +39,7 @@ LEGENDARY = [
     889,  # zamazenta
     890,  # eternatus
     891,  # kubfu
-    892,  # urshifu
+    892,  # urshifu-single-strike
     894,  # regieleki
     895,  # regidrago
     896,  # glastrier
@@ -63,11 +63,11 @@ MYTHICAL = [
     489,  # phione
     490,  # manaphy
     491,  # darkrai
-    492,  # shaymin
+    492,  # shaymin-land
     # Generation 5
     494,  # victini
-    647,  # keldeo
-    648,  # meloetta
+    647,  # keldeo-ordinary
+    648,  # meloetta-aria
     # Generation 6
     719,  # diancie
     720,  # hoopa
@@ -99,7 +99,7 @@ BABY = [
     406,  # budew
     433,  # chingling
     438,  # bonsly
-    439,  # mimejr
+    439,  # mime-jr
     440,  # happiny
     446,  # munchlax
     447,  # riolu
@@ -144,10 +144,10 @@ NORMAL = [
     26,  # raichu
     27,  # sandshrew
     28,  # sandslash
-    29,  # nidoranf
+    29,  # nidoran-f
     30,  # nidorina
     31,  # nidoqueen
-    32,  # nidoranm
+    32,  # nidoran-m
     33,  # nidorino
     34,  # nidoking
     35,  # clefairy
@@ -237,7 +237,7 @@ NORMAL = [
     119,  # seaking
     120,  # staryu
     121,  # starmie
-    122,  # mrmime
+    122,  # mr-mime
     123,  # scyther
     124,  # jynx
     125,  # electabuzz
@@ -459,7 +459,7 @@ NORMAL = [
     405,  # luxray
     407,  # roserade
     412,  # burmy
-    413,  # wormadam
+    413,  # wormadam-plant
     414,  # mothim
     415,  # combee
     416,  # vespiquen
@@ -513,7 +513,7 @@ NORMAL = [
     471,  # glaceon
     472,  # gliscor
     473,  # mamoswine
-    474,  # porygonz
+    474,  # porygon-z
     475,  # gallade
     476,  # probopass
     477,  # dusknoir
@@ -566,12 +566,12 @@ NORMAL = [
     547,  # whimsicott
     548,  # petilil
     549,  # lilligant
-    550,  # basculin
+    550,  # basculin-red-striped
     551,  # sandile
     552,  # krokorok
     553,  # krookodile
     554,  # darumaka
-    555,  # darmanitan
+    555,  # darmanitan-standard
     556,  # maractus
     557,  # dwebble
     558,  # crustle
@@ -670,10 +670,10 @@ NORMAL = [
     675,  # pangoro
     676,  # furfrou
     677,  # espurr
-    678,  # meowstic
+    678,  # meowstic-male
     679,  # honedge
     680,  # doublade
-    681,  # aegislash
+    681,  # aegislash-shield
     682,  # spritzee
     683,  # aromatisse
     684,  # swirlix
@@ -698,8 +698,8 @@ NORMAL = [
     707,  # klefki
     708,  # phantump
     709,  # trevenant
-    710,  # pumpkaboo
-    711,  # gourgeist
+    710,  # pumpkaboo-average
+    711,  # gourgeist-average
     712,  # bergmite
     713,  # avalugg
     714,  # noibat
@@ -715,12 +715,12 @@ NORMAL = [
     738,  # vikavolt
     739,  # crabrawler
     740,  # crabominable
-    741,  # oricorio
+    741,  # oricorio-baile
     742,  # cutiefly
     743,  # ribombee
     744,  # rockruff
-    745,  # lycanroc
-    746,  # wishiwashi
+    745,  # lycanroc-midday
+    746,  # wishiwashi-solo
     747,  # mareanie
     748,  # toxapex
     749,  # mudbray
@@ -746,17 +746,17 @@ NORMAL = [
     769,  # sandygast
     770,  # palossand
     771,  # pyukumuku
-    774,  # minior
+    774,  # minior-red-meteor
     775,  # komala
     776,  # turtonator
     777,  # togedemaru
-    778,  # mimikyu
+    778,  # mimikyu-disguised
     779,  # bruxish
     780,  # drampa
     781,  # dhelmise
-    782,  # jangmoo
-    783,  # hakamoo
-    784,  # kommoo
+    782,  # jangmo-o
+    783,  # hakamo-o
+    784,  # kommo-o
     # Generation 8
     819,  # skwovet
     820,  # greedent
@@ -787,7 +787,7 @@ NORMAL = [
     845,  # cramorant
     846,  # arrokuda
     847,  # barraskewda
-    849,  # toxtricity
+    849,  # toxtricity-amped
     850,  # sizzlipede
     851,  # centiskorch
     852,  # clobbopus
@@ -804,7 +804,7 @@ NORMAL = [
     863,  # perrserker
     864,  # cursola
     865,  # sirfetchd
-    866,  # mrrime
+    866,  # mr-rime
     867,  # runerigus
     868,  # milcery
     869,  # alcremie
@@ -813,9 +813,9 @@ NORMAL = [
     872,  # snom
     873,  # frosmoth
     874,  # stonjourner
-    875,  # eiscue
-    876,  # indeedee
-    877,  # morpeko
+    875,  # eiscue-ice
+    876,  # indeedee-male
+    877,  # morpeko-full-belly
     878,  # cufant
     879,  # copperajah
     884,  # duraludon
@@ -825,10 +825,10 @@ NORMAL = [
     899,  # wyrdeer
     900,  # kleavor
     901,  # ursaluna
-    902,  # basculegion
+    902,  # basculegion-male
     903,  # sneasler
     904,  # overqwil
-    905,  # enamorus
+    905,  # enamorus-incarnate
     # Generation 9
     915,  # lechonk
     916,  # oinkologne
@@ -899,38 +899,38 @@ NORMAL = [
     981,  # farigiraf
     982,  # dudunsparce
     983,  # kingambit
-    984,  # greattusk
-    985,  # screamtail
-    986,  # brutebonnet
-    987,  # fluttermane
-    988,  # slitherwing
-    989,  # sandyshocks
-    990,  # irontreads
-    991,  # ironbundle
-    992,  # ironhands
-    993,  # ironjugulis
-    994,  # ironmoth
-    995,  # ironthorns
+    984,  # great-tusk
+    985,  # scream-tail
+    986,  # brute-bonnet
+    987,  # flutter-mane
+    988,  # slither-wing
+    989,  # sandy-shocks
+    990,  # iron-treads
+    991,  # iron-bundle
+    992,  # iron-hands
+    993,  # iron-jugulis
+    994,  # iron-moth
+    995,  # iron-thorns
     996,  # frigibax
     997,  # arctibax
     998,  # baxcalibur
     999,  # gimmighoul
     1000,  # gholdengo
-    1001,  # wochien
-    1002,  # chienpao
-    1003,  # tinglu
-    1004,  # chiyu
-    1005,  # roaringmoon
-    1006,  # ironvaliant
-    1009,  # walkingwake
-    1010,  # ironleaves
+    1001,  # wo-chien
+    1002,  # chien-pao
+    1003,  # ting-lu
+    1004,  # chi-yu
+    1005,  # roaring-moon
+    1006,  # iron-valiant
+    1009,  # walking-wake
+    1010,  # iron-leaves
     1011,  # dipplin
     1012,  # poltchageist
     1013,  # sinistcha
     1018,  # archaludon
     1019,  # hydrapple
-    1020,  # gougingfire
-    1021,  # ragingbolt
-    1022,  # ironboulder
-    1023,  # ironcrown
+    1020,  # gouging-fire
+    1021,  # raging-bolt
+    1022,  # iron-boulder
+    1023,  # iron-crown
 ]
