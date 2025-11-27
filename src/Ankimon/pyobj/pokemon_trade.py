@@ -275,7 +275,7 @@ class PokemonTrade:
         self.trade_code_layout.addWidget(self.your_code_label)
 
         self.code_display_layout = QHBoxLayout()
-        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.ev_string()},{self.iv_string()},{self.attack_ids()}"
+        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.ev_string()},{self.iv_string()},{self.shiny},{self.attack_ids()}"
         self.trade_code_display = QLineEdit(clipboard_info)
         self.trade_code_display.setReadOnly(True)
         self.trade_code_display.setFont(QFont("Courier New", 10))
@@ -504,7 +504,8 @@ class PokemonTrade:
             pokemon_id, level, gender_id = numbers[0], numbers[1], numbers[2]
             ev_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[3:9]))
             iv_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[9:15]))
-            attacks = [self.find_move_by_num(attack_id)['name'] for attack_id in numbers[15:]]
+            shiny = numbers[15]
+            attacks = [self.find_move_by_num(attack_id)['name'] for attack_id in numbers[16:]]
 
             details = self.find_pokemon_by_id(pokemon_id)
             if not details:
@@ -544,7 +545,7 @@ class PokemonTrade:
                 "friendship": 0,
                 "pokemon_defeated": 0,
                 "everstone": False,
-                "shiny": False,
+                "shiny": shiny,
                 "mega": False,
                 "special_form": None,
                 "capture_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
