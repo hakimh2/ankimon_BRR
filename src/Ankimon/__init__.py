@@ -583,6 +583,7 @@ def on_review_card(*args):
             # if enemy pokemon faints, this handles AUTOMATIC BATTLE
             if enemy_pokemon.hp < 1:
                 enemy_pokemon.hp = 0
+                test_window.display_battle()
                 handle_enemy_faint(
                     main_pokemon,
                     enemy_pokemon,
