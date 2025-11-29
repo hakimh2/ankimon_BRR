@@ -178,5 +178,66 @@
             "special-form": null,
             "evos": []
         }
+    },
+    {
+        "code": "MONTHLY-2025-12-DELIBIRD",
+        "month": "December 2025",
+        "description": "It's the most wonderful time of the year! Delibird brings gifts for the December 2025 challenge!",
+        "previous_challenge_individual_id": "c3d22607-5762-44a9-9bbb-570cef7231a0",
+        "defeat_threshold": 150,
+        "pokemon": {
+            "name": "Delibird",
+            "nickname": "",
+            "level": 1,
+            "gender": "M",
+            "id": 225,
+            "ability": "Vital spirit",
+            "type": [
+                "Ice",
+                "Flying"
+            ],
+            "stats": {
+                "hp": 45,
+                "atk": 55,
+                "def": 45,
+                "spa": 65,
+                "spd": 45,
+                "spe": 75,
+                "xp": 0
+            },
+            "ev": {
+                "hp": 0,
+                "atk": 0,
+                "def": 0,
+                "spa": 0,
+                "spd": 0,
+                "spe": 0
+            },
+            "iv": {
+                "hp": 30,
+                "atk": 22,
+                "def": 4,
+                "spa": 16,
+                "spd": 5,
+                "spe": 4
+            },
+            "attacks": [
+                "Present",
+                "Ice ball",
+                "Icy wind"
+            ],
+            "base_experience": 116,
+            "current_hp": 45,
+            "growth_rate": "fast",
+            "friendship": 70,
+            "pokemon_defeated": 0,
+            "everstone": false,
+            "shiny": false,
+            "captured_date": "2025-11-27 15:21:05",
+            "individual_id": "693dda86-93c6-41d0-9b01-f8b0d0f95c17",
+            "mega": false,
+            "special-form": null,
+            "evos": []
+        }
     }
 ]
