@@ -761,7 +761,7 @@ def handle_enemy_faint(
         new_pokemon(enemy_pokemon, test_window, ankimon_tracker_obj, reviewer_obj)  # Show a new random Pokémon
 
     # For Manual mode (auto_battle_setting == 0): no need to show window or do actions automatically
-
+    test_window.display_pokemon_death()
     main_pokemon.reset_bonuses()
     ankimon_tracker_obj.general_card_count_for_battle = 0
 
