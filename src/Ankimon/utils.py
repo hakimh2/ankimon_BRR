@@ -27,7 +27,6 @@ from .resources import (
     csv_file_descriptions,
     font_path,
     pokemon_names_file_path,
-    move_names_file_path,
     hurt_normal_sound_path,
     hurt_noteff_sound_path,
     hurt_supereff_sound_path,
@@ -39,6 +38,7 @@ from .resources import (
     addon_dir,
     POKEMON_TIERS
 )
+from .move_names import format_move_name
 
 audio_output = QAudioOutput()
 media_player = QMediaPlayer()
@@ -47,8 +47,6 @@ media_player.setAudioOutput(audio_output)
 # Load move and pokemon name mapping at startup
 with open(pokemon_names_file_path, "r", encoding="utf-8") as f:
     POKEMON_NAME_LOOKUP = json.load(f)
-with open(move_names_file_path, "r", encoding="utf-8") as f:
-    MOVE_NAME_LOOKUP = json.load(f)
 
 
 def format_pokemon_name(name: str) -> str:
@@ -58,14 +56,6 @@ def format_pokemon_name(name: str) -> str:
     """
     key = name.replace(" ", "").replace("-", "").replace("_", "").lower()
     return POKEMON_NAME_LOOKUP.get(key, name.capitalize())
-
-def format_move_name(move: str) -> str:
-    """
-    Look up the official move name using the normalized key.
-    Falls back to title-casing with spaces if not found.
-    """
-    key = move.replace(" ", "").replace("-", "").replace("_", "").lower()
-    return MOVE_NAME_LOOKUP.get(key, " ".join(word.capitalize() for word in move.replace("_", " ").split()))
 
 def check_folders_exist(parent_directory, folder):
     folder_path = os.path.join(parent_directory, folder)
@@ -529,6 +519,14 @@ def get_item_description(item_name, language_id):
     try:
         item_id = get_item_id(item_name)
         file_path=csv_file_descriptions
+        # Normalize language: fall back to Spanish data for es_latam (14), English on errors.
+        try:
+            normalized_lang = int(language_id)
+        except Exception:
+            normalized_lang = 9
+        if normalized_lang == 14:
+            normalized_lang = 7
+
         # Open the CSV file and read the contents
         with open(file_path, mode='r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
@@ -537,7 +535,7 @@ def get_item_description(item_name, language_id):
             for row in reader:
                 # Check if the current row matches the item_id, version_group_id, and language_id
                 if (int(row['item_id']) == item_id and
-                        int(row['language_id']) == language_id):
+                        int(row['language_id']) == normalized_lang):
                     return row['flavor_text']  # Return the matching flavor text
 
         # If no match is found, return None

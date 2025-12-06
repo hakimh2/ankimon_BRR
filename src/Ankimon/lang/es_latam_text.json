@@ -1,9 +1,9 @@
 {
   "startup": "Inicio de Ankimon.",
   "failed_github": "Error al obtener datos de Github.",
-  "catch_button": "Atrapar Pokémon",
-  "defeat_button": "Derrotar Pokémon",
-  "enemy_pokemon_defeat_text": "¿Quieres matar o atrapar al {enemy_pokemon_name} salvaje?",
+  "catch_button": "Atrapar",
+  "defeat_button": "Debilitar",
+  "enemy_pokemon_defeat_text": "¿Quieres debilitar o atrapar al {enemy_pokemon_name} salvaje?",
   "no_ability": "Sin habilidad",
   "battle_status_in_progress": "Batalla en curso",
   "level": "Nivel",

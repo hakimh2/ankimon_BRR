@@ -94,6 +94,7 @@ lang_path_it = addon_dir / "lang" / "it_text.json"
 lang_path_cz = addon_dir / "lang" / "cz_text.json"
 lang_path_po = addon_dir / "lang" / "po_text.json"
 lang_path_kr = addon_dir / "lang" / "kr_text.json"
+lang_path_es_latam = addon_dir / "lang" / "es_latam_text.json"
 
 #backup_routes
 backup_root = addon_dir / "user_files" / "backups"
