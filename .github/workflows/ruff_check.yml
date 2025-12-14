@@ -7,4 +7,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
         with:
-          args: "check --config ruff_ci.toml"
+          args: "check --config ci_ruff_check.toml"
