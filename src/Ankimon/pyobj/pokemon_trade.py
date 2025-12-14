@@ -275,7 +275,7 @@ class PokemonTrade:
         self.trade_code_layout.addWidget(self.your_code_label)
 
         self.code_display_layout = QHBoxLayout()
-        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.format_shiny()},{self.ev_string()},{self.iv_string()},{self.shiny},{self.attack_ids()}"
+        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.format_shiny()},{self.ev_string()},{self.iv_string()},{self.attack_ids()}"
         self.trade_code_display = QLineEdit(clipboard_info)
         self.trade_code_display.setReadOnly(True)
         self.trade_code_display.setFont(QFont("Courier New", 10))
