@@ -41,6 +41,13 @@ def _try_back(back: bool, id: int, gif: bool, shiny: bool, female: bool):
 
     if back:
         # requested back
+
+        # special fallback
+        if not gif:
+            path = f"sprites/missing_back/{id}.png"
+            if os.path.exists(path):
+                return path
+
         path = _try_gendered(False, id, gif, shiny, False)
         if path:
             return path
