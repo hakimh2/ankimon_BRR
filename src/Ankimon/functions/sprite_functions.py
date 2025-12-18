@@ -1,5 +1,7 @@
 import os
 
+from aqt import mw
+
 from ..resources import pkmnimgfolder
 
 SUBSTITUTE_PATH = f"{pkmnimgfolder}/front_default/substitute.png"
@@ -71,7 +73,8 @@ def get_sprite_path(side: str, sprite_type: str, id: int, shiny: bool, gender: s
             return path
 
     # Fallback to the generic substitute image
-    print(
-        f"Unable to find sprite for ID {id} (Side: {side} Sprite: {sprite_type} Shiny: {shiny}, Gender: {gender}). Returning substitute."
+    mw.logger.log(
+        "warning",
+        f"Unable to find sprite for ID {id} (Side: {side} Sprite: {sprite_type} Shiny: {shiny}, Gender: {gender}). Returning substitute.",
     )
     return SUBSTITUTE_PATH
