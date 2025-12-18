@@ -19,6 +19,23 @@ import random
 import csv
 from ..pyobj.error_handler import show_warning_with_traceback
 
+GROWTH_RATES = {
+    1: "slow", 
+    2: "medium", 
+    3: "fast", 
+    4: "medium-slow", 
+    5: "slow-then-very-fast", 
+    6: "fast-then-very-slow"
+}
+
+STATS = {
+    1: "hp",
+    2: "attack",
+    3: "defense", 
+    4: "special-attack", 
+    5: "special-defense", 
+    6: "speed", 
+}
 
 def special_pokemon_names_for_min_level(name):
     if name == "flabébé":
@@ -129,14 +146,6 @@ def get_mainpokemon_evo(pokemon_name):
         evolutions = pokemon_info.get("evos", [])
         return evolutions
 
-GROWTH_RATES = {
-    1: "slow", 
-    2: "medium", 
-    3: "fast", 
-    4: "medium-slow", 
-    5: "slow-then-very-fast", 
-    6: "fast-then-very-slow"
-}
 def get_growth_rate(species_id: int) -> str:
     with open(poke_species_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
@@ -157,14 +166,6 @@ def get_base_experience(actual_id: int) -> int:
 
     raise ValueError(actual_id)
 
-STATS = {
-    1: "hp",
-    2: "attack",
-    3: "defense", 
-    4: "special-attack", 
-    5: "special-defense", 
-    6: "speed", 
-}
 def get_effort_values(actual_id: int) -> dict[str, int]:
     evs = {}
     with open(stats_csv, mode="r", encoding="utf-8") as file:
