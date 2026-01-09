@@ -1,0 +1,5 @@
+target-version = "py39"
+
+[lint]
+select = ["PLE"]
+ignore = []
