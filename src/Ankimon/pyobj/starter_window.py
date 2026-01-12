@@ -52,7 +52,6 @@ class StarterWindow(QWidget):
         self.settings_obj = settings_obj
 
         self.current_gen = 0 # Start with Gen 1
-        self.display_starter_pokemon()
 
     def init_ui(self):
         basic_layout = QVBoxLayout()
