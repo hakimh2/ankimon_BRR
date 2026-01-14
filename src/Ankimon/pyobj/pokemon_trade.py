@@ -147,7 +147,7 @@ def check_and_award_monthly_pokemon(logger):
 
 
 class PokemonTrade:
-    TRADE_VERSION = "01"
+    TRADE_VERSION = "02"
 
     def __init__(self, name, id, level, ability, iv, ev, gender, attacks, individual_id, shiny, logger, refresh_callback, parent_window=None):
         self.name = name
@@ -275,7 +275,7 @@ class PokemonTrade:
         self.trade_code_layout.addWidget(self.your_code_label)
 
         self.code_display_layout = QHBoxLayout()
-        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.ev_string()},{self.iv_string()},{self.attack_ids()}"
+        clipboard_info = f"{self.id},{self.level},{self.format_gender()},{self.format_shiny()},{self.ev_string()},{self.iv_string()},{self.attack_ids()}"
         self.trade_code_display = QLineEdit(clipboard_info)
         self.trade_code_display.setReadOnly(True)
         self.trade_code_display.setFont(QFont("Courier New", 10))
@@ -309,7 +309,7 @@ class PokemonTrade:
     def generate_and_show_passwords(self, window):
         code1 = self.trade_code_display.text().strip()
         code2 = self.trade_code_input.text().strip()
-        if not code1 or not code2 or len(code2) < 15:
+        if not code1 or not code2 or len(code2) < 16:
             showWarning("Please enter a valid trade code from the other user.")
             return
 
@@ -391,7 +391,7 @@ class PokemonTrade:
 
         their_version = their_part_entered[-2:]
         if their_version != self.TRADE_VERSION:
-            showWarning(f"Trade incompatible due to Ankimon trade versions. \n\nYour verison: {self.TRADE_VERSION}, partner's version: {their_version}.\n\nPlease get the latest version of Ankimon for both users!")
+            showWarning(f"Trade incompatible due to Ankimon trade versions. \n\nYour version: {self.TRADE_VERSION}, partner's version: {their_version}.\n\nPlease get the latest version of Ankimon for both users!")
             return
 
         if their_part_entered == self._their_password_part:
@@ -486,7 +486,7 @@ class PokemonTrade:
         code = number_code.strip()
         try:
             numbers = [int(num) for num in code.split(',')]
-            if len(numbers) < 15:
+            if len(numbers) < 16:
                 showWarning("Code is incomplete.")
                 return
             incoming_id = numbers[0]
@@ -501,10 +501,10 @@ class PokemonTrade:
         from ..functions.pokedex_functions import search_pokedex, search_pokeapi_db_by_id, get_all_pokemon_moves
         import random
         try:
-            pokemon_id, level, gender_id = numbers[0], numbers[1], numbers[2]
-            ev_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[3:9]))
-            iv_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[9:15]))
-            attacks = [self.find_move_by_num(attack_id)['name'] for attack_id in numbers[15:]]
+            pokemon_id, level, gender_id, shiny = numbers[0], numbers[1], numbers[2], numbers[3]
+            ev_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[4:10]))
+            iv_stats = dict(zip(['hp', 'atk', 'def', 'spa', 'spd', 'spe'], numbers[10:16]))
+            attacks = [self.find_move_by_num(attack_id)['name'] for attack_id in numbers[16:]]
 
             details = self.find_pokemon_by_id(pokemon_id)
             if not details:
@@ -544,7 +544,7 @@ class PokemonTrade:
                 "friendship": 0,
                 "pokemon_defeated": 0,
                 "everstone": False,
-                "shiny": False,
+                "shiny": bool(shiny),
                 "mega": False,
                 "special_form": None,
                 "capture_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -625,6 +625,9 @@ class PokemonTrade:
     def format_gender(self):
         gender_map = {"M": 0, "F": 1, "N": 2}
         return gender_map.get(self.gender, 3)
+    
+    def format_shiny(self):
+        return 1 if self.shiny else 0
 
     def ev_string(self):
         return ','.join(str(value) for value in self.ev.values())
