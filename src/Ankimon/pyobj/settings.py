@@ -119,7 +119,7 @@ class Settings:
                 # Handle old configs without trainer.xp
                 if "trainer.xp" not in config:
                     try:
-                        level = int(config.get("trainer.level", 1))
+                        level = int(config.get("trainer.level"))
                         if level > 0:
                             trainer_xp = int(50 * (level ** 1.5))
                         else:

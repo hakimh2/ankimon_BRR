@@ -29,7 +29,7 @@ class TrainerCard:
         self.favorite_pokemon = main_pokemon.name  # Trainer's favorite Pokémon
         self.trainer_id = trainer_id          # Unique ID for the trainer
         self.level = int(settings_obj.get("trainer.level"))                    # Trainer's level
-        self.xp = int(settings_obj.get("trainer.xp"))                          # Total Trainer XP
+        self.xp = int(settings_obj.get("trainer.xp"))                          # Experience points
         self.achievements = achievements if achievements else []  # List of achievements (if any)
         self.team = team   # Team as a simple string
         highest_level = self.get_highest_level_pokemon()
