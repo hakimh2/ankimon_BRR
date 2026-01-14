@@ -64,6 +64,7 @@ DEFAULT_CONFIG = {
     "trainer.id": 0,
     "trainer.cash": 0,
     "trainer.level": 0,
+    "trainer.xp": 0,
 }
 
 class Settings:
@@ -114,6 +115,18 @@ class Settings:
                             config[key] = int(config[key])
                         except ValueError:
                             print(f"Ankimon: Warning: Could not convert '{config[key]}' for key '{key}' to int. Keeping as string.")
+
+                # Handle old configs without trainer.xp
+                if "trainer.xp" not in config:
+                    try:
+                        level = int(config.get("trainer.level", 1))
+                        if level > 0:
+                            trainer_xp = int(50 * (level ** 1.5))
+                        else:
+                            trainer_xp = 0
+                        config["trainer.xp"] = trainer_xp
+                    except Exception as e:
+                        print(f"Ankimon: Error setting trainer.xp: {e}")
 
             except Exception as e:
                 print(f"Ankimon: Error loading config from config.obf: {e}. Falling back to default config.")

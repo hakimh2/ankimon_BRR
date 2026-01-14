@@ -29,7 +29,7 @@ class TrainerCard:
         self.favorite_pokemon = main_pokemon.name  # Trainer's favorite Pokémon
         self.trainer_id = trainer_id          # Unique ID for the trainer
         self.level = int(settings_obj.get("trainer.level"))                    # Trainer's level
-        self.xp = xp                          # Experience points
+        self.xp = int(settings_obj.get("trainer.xp"))                          # Total Trainer XP
         self.achievements = achievements if achievements else []  # List of achievements (if any)
         self.team = team   # Team as a simple string
         highest_level = self.get_highest_level_pokemon()
@@ -140,6 +140,7 @@ class TrainerCard:
         if allow_to_choose_move is True:
             xp_gained = xp_gained * 0.5
         self.xp += xp_gained
+        self.settings_obj.set("trainer.xp", int(self.xp))
         print(f"Gained {xp_gained} XP from defeating a {tier} Pokémon!")
         self.check_level_up()
 
