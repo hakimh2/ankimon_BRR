@@ -364,12 +364,30 @@
         return isNaN(defeatedCount) ? 0 : Math.max(0, defeatedCount);
       }
 
+      function getReleasedCountFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const releasedParam = params.get("released");
+        const releasedCount = parseInt(releasedParam, 10);
+        return isNaN(releasedCount) ? 0 : Math.max(0, releasedCount);
+      }
+
+      function getCaughtTotalFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const caughtTotalParam = params.get("caught_total");
+        const caughtTotal = parseInt(caughtTotalParam, 10);
+        return isNaN(caughtTotal) ? 0 : Math.max(0, caughtTotal);
+      }
+
       const givenNumbers = getNumbersFromURL();
       const allNumbers = Array.from({ length: totalPokemon }, (_, i) => i + 1);
       const caughtNumbers = allNumbers.filter(number => givenNumbers.includes(number));
       const defeatedCount = getDefeatedCountFromURL();
-      const caughtCount = caughtNumbers.length;
-      const seenTotal = caughtCount + defeatedCount;
+      const releasedCount = getReleasedCountFromURL();
+      const caughtCount = caughtNumbers.length; // Unique IDs (for display)
+      const caughtTotal = getCaughtTotalFromURL(); // Total instances (for "Seen" calculation)
+      // Seen = Obtained instances (current) + Released instances (were obtained before) + Defeated (Pokémon defeated by our Pokémon)
+      // Use caughtTotal (instances) instead of caughtCount (unique IDs) to handle multiple instances of same Pokémon
+      const seenTotal = caughtTotal + releasedCount + defeatedCount;
 
       obtainedCount.textContent = `Pokémon Obtained: ${caughtCount}`;
       seenCount.textContent = `Pokémon Seen: ${seenTotal}`;

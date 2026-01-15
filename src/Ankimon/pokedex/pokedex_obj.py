@@ -4,7 +4,7 @@ from aqt import QDialog, QVBoxLayout, QWebEngineView, mw
 from PyQt6.QtCore import QUrlQuery
 from aqt.qt import Qt, QFile, QUrl, QFrame, QPushButton
 from aqt.utils import showInfo
-from ..resources import mypokemon_path
+from ..resources import mypokemon_path, pokemon_history_path
 
 class Pokedex(QDialog):
     def __init__(self, addon_dir, ankimon_tracker):
@@ -52,6 +52,9 @@ class Pokedex(QDialog):
         # Convert caught IDs to string
         str_owned_pokemon_ids = ",".join(map(str, self.owned_pokemon_ids)) if self.owned_pokemon_ids else ""
         #print("POKEDEX_DEBUG: Caught IDs string:", str_owned_pokemon_ids)
+        
+        # Count total Pokémon instances (not just unique IDs) for accurate "Seen" count
+        total_caught_count = 0
 
         # Calculate defeated Pokémon count
         defeated_count = 0
@@ -71,6 +74,7 @@ class Pokedex(QDialog):
                 print("POKEDEX_DEBUG: Error reading mypokemon.json at", mypokemon_path, ":", str(e))
 
         if pokemon_list:
+            total_caught_count = len(pokemon_list)  # Count total instances, not just unique IDs
             for pokemon in pokemon_list:
                 defeated = pokemon.get("pokemon_defeated", 0)
                 try:
@@ -81,6 +85,25 @@ class Pokedex(QDialog):
                     print(f"POKEDEX_DEBUG: Invalid pokemon_defeated for ID {pokemon.get('id', 'unknown')}: {defeated}")
         else:
             print("POKEDEX_DEBUG: No valid mypokemon.json found")
+            total_caught_count = 0
+
+        # Also count defeated Pokémon from released Pokémon history
+        released_count = 0  # Count released Pokémon (they were obtained before release)
+        if os.path.exists(pokemon_history_path):
+            try:
+                with open(pokemon_history_path, "r", encoding="utf-8") as file:
+                    history_list = json.load(file)
+                    released_count = len(history_list)  # Each released Pokémon counts as +1 to "Seen"
+                    for released_pokemon in history_list:
+                        defeated = released_pokemon.get("pokemon_defeated", 0)
+                        try:
+                            defeated_num = int(float(str(defeated)))
+                            defeated_count += defeated_num
+                            #print(f"POKEDEX_DEBUG: Released Pokemon ID {released_pokemon.get('id', 'unknown')}: pokemon_defeated = {defeated_num}")
+                        except (TypeError, ValueError):
+                            print(f"POKEDEX_DEBUG: Invalid pokemon_defeated for released ID {released_pokemon.get('id', 'unknown')}: {defeated}")
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"POKEDEX_DEBUG: Error reading pokemon_history.json: {e}")
 
         #print("POKEDEX_DEBUG: Total defeated_count =", defeated_count)
 
@@ -91,6 +114,10 @@ class Pokedex(QDialog):
         query = QUrlQuery()
         query.addQueryItem("numbers", str_owned_pokemon_ids)
         query.addQueryItem("defeated", str(defeated_count))
+        # Pass released count separately so HTML can add it correctly
+        query.addQueryItem("released", str(released_count))
+        # Pass total caught count (instances, not unique IDs) for accurate "Seen" calculation
+        query.addQueryItem("caught_total", str(total_caught_count))
         url.setQuery(query)
         #print("POKEDEX_DEBUG: Final URL:", url.toString())
 
