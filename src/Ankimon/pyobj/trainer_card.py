@@ -1,4 +1,4 @@
-from ..resources import trainer_sprites_path, mypokemon_path
+from ..resources import trainer_sprites_path, mypokemon_path, team_pokemon_path
 from ..functions.trainer_functions import find_trainer_rank
 from ..functions.badges_functions import get_achieved_badges
 from aqt.utils import showWarning, showInfo
@@ -21,7 +21,7 @@ POKEMON_TIERS = {
 }
 
 class TrainerCard:
-    def __init__(self, logger, main_pokemon, settings_obj, trainer_name, trainer_id, level=1, xp=0, achievements=None, team="", image_path=trainer_sprites_path, league="unranked"):
+    def __init__(self, logger, main_pokemon, settings_obj, trainer_name, trainer_id, level=1, xp=0, achievements=None, team="No Team Set", image_path=trainer_sprites_path, league="unranked"):
         self.logger = logger
         self.main_pokemon = main_pokemon
         self.settings_obj = settings_obj
@@ -31,7 +31,7 @@ class TrainerCard:
         self.level = int(settings_obj.get("trainer.level"))                    # Trainer's level
         self.xp = xp                          # Experience points
         self.achievements = achievements if achievements else []  # List of achievements (if any)
-        self.team = team   # Team as a simple string
+        self.team = self.get_team()   # Team as a simple string
         highest_level = self.get_highest_level_pokemon()
         self.highest_level = highest_level  # Highest level Pokémon
         highest_pokemon_level = int(self.highest_pokemon_level())
@@ -106,9 +106,44 @@ class TrainerCard:
         """Method to add a new achievement"""
         self.achievements.append(achievement)
 
+    def get_pokemon_name_and_level_by_id(self, individual_id):
+        """Retrieves the name and level of a pokemon by its individual_id from mypokemon.json"""
+        try:
+            with open(mypokemon_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            for pokemon in data:
+                if pokemon.get("individual_id") == str(individual_id):
+                    name = pokemon.get("name")
+                    level = pokemon.get("level")
+                    return f"{name} (Level {level})"
+            return "Unknown Pokemon" 
+        except Exception as e:
+            print(f"Error finding pokemon by id: {e}")
+            return "Error"
+
+    def get_team(self):
+        """Method to get the trainer's active team (team as a string)"""
+        try:
+            with open(team_pokemon_path, "r", encoding="utf-8") as f:
+                team_data = json.load(f)
+            if not team_data:
+                return "No Team Set"
+            individual_ids = [pokemon.get("individual_id") for pokemon in team_data]
+            pokemon_strings = [self.get_pokemon_name_and_level_by_id(individual_id) for individual_id in individual_ids]
+            return ", ".join(pokemon_strings)
+        except FileNotFoundError:
+            return "No Team Set"
+        except Exception as e:
+            self.logger.log_and_showinfo("error", f"Error ; team.json: {e}")
+            return "Error Loading Team"
+
     def set_team(self, team_pokemons):
         """Method to set the trainer's active team (team as a string)"""
         self.team = ", ".join(team_pokemons)
+
+    def reload_team(self):
+        """Reload the team data from the file"""
+        self.team = self.get_team()
 
     def display_card_data(self):
         """Method to return trainer card data as a dictionary"""
