@@ -1,4 +1,5 @@
 target-version = "py39"
+extend-exclude = ["poke_engine", "pypresence"]
 
 [lint]
 select = ["PLE"]
