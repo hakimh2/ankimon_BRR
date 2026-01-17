@@ -139,8 +139,8 @@ class TrainerCard:
         xp_gained = POKEMON_TIERS.get(tier.lower(), 0)
         if allow_to_choose_move is True:
             xp_gained = xp_gained * 0.5
-        self.xp += xp_gained
-        self.settings_obj.set("trainer.xp", int(self.xp))
+        self.settings_obj.set("trainer.xp", int(self.settings_obj.get("trainer.xp") + xp_gained))
+        self.xp = self.settings_obj.get("trainer.xp")
         print(f"Gained {xp_gained} XP from defeating a {tier} Pokémon!")
         self.check_level_up()
 
