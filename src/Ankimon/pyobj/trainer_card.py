@@ -37,7 +37,6 @@ class TrainerCard:
         level=1,
         xp=0,
         achievements=None,
-        team="No Team Set",
         image_path=trainer_sprites_path,
         league="unranked",
     ):
