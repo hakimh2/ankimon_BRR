@@ -53,6 +53,18 @@ from ..texts import (
 )
 
 
+def _lookup_move_data(attack: str):
+    """Find move data using raw/normalized keys, without localized names."""
+    move = find_details_move(attack)
+    if move:
+        return move
+    normalized = re.sub(r"[^a-z0-9]", "", attack.lower())
+    move = find_details_move(normalized)
+    if move:
+        return move
+    return find_details_move("tackle")
+
+
 def PokemonCollectionDetails(
     name: str,
     level: int,
@@ -444,21 +456,11 @@ def attack_details_window(attacks):
     html_content = attack_details_window_template
     # Loop through the list of attacks and add them to the HTML content
     for attack in attacks:
-        move = find_details_move(format_move_name(attack))
-        if move is None:
-            attack = attack.replace(" ", "")
-            try:
-                move = find_details_move(format_move_name(attack))
-            except:
-                logger.log_and_showinfo(
-                    "info", f"Can't find the attack {attack} in the database."
-                )
-                move = find_details_move("tackle")
-        if move is None:
-            continue
+        move = _lookup_move_data(attack)
+        display_name = format_move_name(attack)
         html_content += f"""
         <tr>
-          <td class="move-name">{move["name"]}</td>
+          <td class="move-name">{display_name}</td>
           <td><img src="{type_icon_path(move["type"])}" alt="{move["type"]}"/></td>
           <td><img src="{move_category_path(move["category"].lower())}" alt="{move["category"]}"/></td>
           <td class="basePower">{move["basePower"]}</td>
@@ -491,10 +493,10 @@ def remember_attack_details_window(individual_id, attack_set, all_attacks, logge
     layout = QHBoxLayout(content_widget)
     html_content = remember_attack_details_window_template
     for attack in all_attacks:
-        move = find_details_move(attack)
+        move = find_details_move(attack) or _lookup_move_data(attack)
         html_content += f"""
         <tr>
-          <td class="move-name">{move["name"]}</td>
+          <td class="move-name">{format_move_name(attack)}</td>
           <td><img src="{type_icon_path(move["type"])}" alt="{move["type"]}"/></td>
           <td><img src="{move_category_path(move["category"].lower())}" alt="{move["category"]}"/></td>
           <td class="basePower">{move["basePower"]}</td>
@@ -550,12 +552,11 @@ def forget_attack_details_window(
     layout = QHBoxLayout(content_widget)
     html_content = remember_attack_details_window_template
     for attack in attack_set:
-        move = find_details_move(format_move_name(attack))
-        if move is None:
-            continue
+        move = _lookup_move_data(attack)
+        display_name = format_move_name(attack)
         html_content += f"""
         <tr>
-          <td class="move-name">{move["name"]}</td>
+          <td class="move-name">{display_name}</td>
           <td><img src="{type_icon_path(move["type"])}" alt="{move["type"]}"/></td>
           <td><img src="{move_category_path(move["category"].lower())}" alt="{move["category"]}"/></td>
           <td class="basePower">{move["basePower"]}</td>
@@ -761,14 +762,12 @@ def tm_attack_details_window(
 
     # Loop through the list of attacks and add them to the HTML content
     for attack in attack_set:
-        move = find_details_move(attack) or find_details_move(format_move_name(attack))
-
-        if move is None:
-            continue
+        move = find_details_move(attack) or _lookup_move_data(attack)
+        display_name = format_move_name(attack)
 
         html_content += f"""
         <tr>
-          <td class="move-name">{move["name"]}</td>
+          <td class="move-name">{display_name}</td>
           <td><img src="{type_icon_path(move["type"])}" alt="{move["type"]}"/></td>
           <td><img src="{move_category_path(move["category"].lower())}" alt="{move["category"]}"/></td>
           <td class="basePower">{move["basePower"]}</td>

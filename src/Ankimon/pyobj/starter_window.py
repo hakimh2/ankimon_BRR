@@ -35,6 +35,7 @@ from ..functions.pokedex_functions import get_base_experience, get_growth_rate, 
 from ..functions.pokemon_functions import get_random_moves_for_pokemon, pick_random_gender
 from ..utils import load_custom_font, close_anki
 from ..resources import addon_dir, frontdefault, mainpokemon_path, mypokemon_path
+from ..const import total_generations
 from .error_handler import show_warning_with_traceback
 
 class StarterWindow(QWidget):
@@ -51,6 +52,8 @@ class StarterWindow(QWidget):
         # save a reference to them as an attribute
         self.logger = logger
         self.settings_obj = settings_obj
+
+        self.current_gen = 0 # Start with Gen 1
 
     def init_ui(self):
         basic_layout = QVBoxLayout()
@@ -76,6 +79,7 @@ class StarterWindow(QWidget):
         if event.key() == Qt.Key.Key_G:  # Updated to Key_G for PyQt 6
             # First encounter image
             if not self.starter:
+                self.current_gen = (self.current_gen + 1) % total_generations
                 self.display_starter_pokemon()
             # If self.starter is True, simply pass (do nothing)
             else:
@@ -165,7 +169,7 @@ class StarterWindow(QWidget):
 
         close_anki()
 
-    def get_random_starter(self):
+    def get_starters_of_gen(self):
         try:
             # Reload the JSON data from the file
             # Convert the input to lowercase to match the values in our JSON data
@@ -182,13 +186,12 @@ class StarterWindow(QWidget):
                         fire_starter.append(pokemon)
                     elif type == "Water":
                         water_starter.append(pokemon)
-            random_gen = random.randint(0, 8)
-            water_start = f"{water_starter[random_gen]}"
-            fire_start = f"{fire_starter[random_gen]}"
-            grass_start = f"{grass_starter[random_gen]}"
+            water_start = f"{water_starter[self.current_gen]}"
+            fire_start = f"{fire_starter[self.current_gen]}"
+            grass_start = f"{grass_starter[self.current_gen]}"
             return water_start, fire_start, grass_start
         except Exception as e:
-            show_warning_with_traceback(parent=mw, exception=e, message=f"Error in get_random_starter: {e}")
+            show_warning_with_traceback(parent=mw, exception=e, message=f"Error in get_starters_of_gen: {e}")
             return None, None, None
 
     def display_starter_pokemon(self):
@@ -196,7 +199,7 @@ class StarterWindow(QWidget):
         self.setMaximumHeight(320)
         self.clear_layout(self.layout())
         layout = self.layout()
-        water_start, fire_start, grass_start = self.get_random_starter()
+        water_start, fire_start, grass_start = self.get_starters_of_gen()
         starter_label = self.pokemon_display_starter(water_start, fire_start, grass_start)
         self.water_starter_button, self.fire_starter_button, self.grass_start_button = self.pokemon_display_starter_buttons(water_start, fire_start, grass_start)
         layout.addWidget(starter_label)
@@ -333,7 +336,8 @@ class StarterWindow(QWidget):
         painter.drawText(110, 310, message_box_text)
         custom_font = load_custom_font(int(20), int(self.settings_obj.get("misc.language")))
         painter.setFont(custom_font)
-        painter.drawText(10, 330, "Press G to change Generation")
+        next_gen = (self.current_gen + 1) % total_generations + 1
+        painter.drawText(10, 330, f"Press G for Gen {next_gen}")
         painter.end()
         # Set the merged image as the pixmap for the QLabel
         starter_label = QLabel()

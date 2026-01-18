@@ -37,6 +37,17 @@ STATS = {
     6: "speed", 
 }
 
+def _normalize_language_id(language):
+    """Map unsupported language IDs to a fallback that exists in data files."""
+    try:
+        lang = int(language)
+    except Exception:
+        return 9  # default to English on any parsing issue
+    if lang == 14:  # Spanish (LatAm) falls back to Spanish data
+        return 7
+    return lang
+
+
 def special_pokemon_names_for_min_level(name):
     if name == "flabébé":
         return "flabebe"
@@ -184,9 +195,9 @@ def get_effort_values(actual_id: int) -> dict[str, int]:
         "speed": evs["speed"],
     }
 
-# TODO change all the functions to use language as a parameter
 def get_pokemon_descriptions(species_id, language):
     descriptions = []  # Initialize an empty list to store matching descriptions
+    language = _normalize_language_id(language)
     with open(pokedesc_lang_path, mode="r", encoding="utf-8") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
@@ -208,8 +219,8 @@ def get_pokemon_descriptions(species_id, language):
         return "Description not found."
 
 
-# TODO change all the functions to use language as a parameter
 def get_pokemon_diff_lang_name(pokemon_id: int, language: int):
+    language = _normalize_language_id(language)
     with open(pokenames_lang_path, mode="r", encoding="utf-8") as file:
         reader = csv.reader(file)
         next(reader)  # Skip the header row if there is one
