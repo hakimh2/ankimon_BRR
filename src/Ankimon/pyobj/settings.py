@@ -122,11 +122,7 @@ class Settings:
                             print(
                                 f"Ankimon: Warning: Could not convert '{config[key]}' for key '{key}' to int. Keeping as string."
                             )
-
-                # Handle old configs without trainer.xp
-                if "trainer.xp" not in config:
-                    config["trainer.xp"] = 0
-
+                            
             except Exception as e:
                 print(
                     f"Ankimon: Error loading config from config.obf: {e}. Falling back to default config."
