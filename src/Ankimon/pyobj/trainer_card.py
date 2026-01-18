@@ -35,7 +35,6 @@ class TrainerCard:
         trainer_name,
         trainer_id,
         level=1,
-        xp=0,
         achievements=None,
         team="",
         image_path=trainer_sprites_path,
