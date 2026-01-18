@@ -183,7 +183,7 @@ class TestWindow(QWidget):
         if self.ankimon_tracker_obj.pokemon_encouter > 0:
             bckgimage_path = battlescene_path_without_dialog / self.ankimon_tracker_obj.battlescene_file
 
-        msg_font = load_custom_font(int(32), int(self.settings_obj.get("misc.language")))
+        msg_font = load_custom_font(32, int(self.settings_obj.get("misc.language")))
 
         image_label, msg_font = self.window_show(bckgimage_path, lang_name)
 
@@ -275,12 +275,12 @@ class TestWindow(QWidget):
 
         # Paint XP Bar
         painter.setBrush(QColor(58, 155, 220))
-        painter.drawRect(int(366), int(246), int(mainpokemon_xp_value), int(mainxp_bar_width))
+        painter.drawRect(366, 246, int(mainpokemon_xp_value), int(mainxp_bar_width))
 
         # custom font
-        custom_font = load_custom_font(int(26), int(self.settings_obj.get("misc.language")))
-        hp_enemy_text_font = load_custom_font(int(18), int(self.settings_obj.get("misc.language")))
-        msg_font = load_custom_font(int(32), int(self.settings_obj.get("misc.language")))
+        custom_font = load_custom_font(26, int(self.settings_obj.get("misc.language")))
+        hp_enemy_text_font = load_custom_font(18, int(self.settings_obj.get("misc.language")))
+        msg_font = load_custom_font(32, int(self.settings_obj.get("misc.language")))
 
         # Draw the text on top of the image
         # Adjust the font size as needed
@@ -447,12 +447,12 @@ class TestWindow(QWidget):
 
         # Paint XP Bar
         painter.setBrush(QColor(58, 155, 220))
-        painter.drawRect(int(366), int(246), int(mainpokemon_xp_value), int(mainxp_bar_width))
+        painter.drawRect(366, 246, int(mainpokemon_xp_value), int(mainxp_bar_width))
 
         # custom font
-        custom_font = load_custom_font(int(26), int(self.settings_obj.get("misc.language")))
-        hp_enemy_text_font = load_custom_font(int(18), int(self.settings_obj.get("misc.language")))
-        msg_font = load_custom_font(int(28), int(self.settings_obj.get("misc.language")))
+        custom_font = load_custom_font(26, int(self.settings_obj.get("misc.language")))
+        hp_enemy_text_font = load_custom_font(18, int(self.settings_obj.get("misc.language")))
+        msg_font = load_custom_font(28, int(self.settings_obj.get("misc.language")))
 
         # Draw the text on top of the image
         # Adjust the font size as needed
@@ -558,7 +558,7 @@ class TestWindow(QWidget):
             painter.drawPixmap(200,90,item_pixmap)
 
         # custom font
-        custom_font = load_custom_font(int(26), int(self.settings_obj.get("misc.language")))
+        custom_font = load_custom_font(26, int(self.settings_obj.get("misc.language")))
 
         message_box_text = f"{self.translator.translate('received_an_item', item_name=item.capitalize())} !"
 
@@ -569,7 +569,7 @@ class TestWindow(QWidget):
 
         painter.drawText(50, 290, message_box_text)
 
-        custom_font = load_custom_font(int(20), int(self.settings_obj.get("misc.language")))
+        custom_font = load_custom_font(20, int(self.settings_obj.get("misc.language")))
         painter.setFont(custom_font)
         #painter.drawText(10, 330, "You can look this up in your item bag.")
 
@@ -628,7 +628,7 @@ class TestWindow(QWidget):
             painter.drawPixmap(200,90,item_pixmap)
 
             # custom font
-            custom_font = load_custom_font(int(20), int(self.settings_obj.get("misc.language")))
+            custom_font = load_custom_font(20, int(self.settings_obj.get("misc.language")))
 
             message_box_text = self.translator.translate("received_a_badge")
 
@@ -645,7 +645,7 @@ class TestWindow(QWidget):
             painter.drawText(120, 270, message_box_text)
             painter.drawText(140, 290, message_box_text2)
 
-            custom_font = load_custom_font(int(20), int(self.settings_obj.get("misc.language")))
+            custom_font = load_custom_font(20, int(self.settings_obj.get("misc.language")))
             painter.setFont(custom_font)
             #painter.drawText(10, 330, "You can look this up in your item bag.")
 
