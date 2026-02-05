@@ -48,13 +48,11 @@ def create_monthly_challenge_pokemon(pokemon_data, make_shiny=False):
     }
 
 def add_pokemon_to_collection(new_pokemon, refresh_callback=None, parent_window=None):
-    """Adds a Pokémon to the user's collection file."""
+    """Adds a Pokémon to the user's collection in the database."""
     try:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_list = json.load(file)
-        pokemon_list.append(new_pokemon)
-        with open(mypokemon_path, "w", encoding="utf-8") as file:
-            json.dump(pokemon_list, file, indent=2)
+        from .database_manager import get_db
+        db = get_db()
+        db.save_pokemon(new_pokemon)
         if refresh_callback:
             refresh_callback()
     except Exception as e:
@@ -103,12 +101,9 @@ def check_and_award_monthly_pokemon(logger):
             logger.log("warning", f"Monthly challenge for {current_month_str} is missing 'individual_id' in 'pokemon' data.")
             return
 
-        try:
-            with open(mypokemon_path, "r", encoding="utf-8") as f:
-                my_pokemon = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.log("error", f"Failed to load or parse mypokemon.json: {e}")
-            return
+        from .database_manager import get_db
+        db = get_db()
+        my_pokemon = db.get_all_pokemon()
 
         if any(p.get("individual_id") == challenge_individual_id for p in my_pokemon):
             logger.log("info", f"User already has the Pokémon for {current_month_str} (ID: {challenge_individual_id}).")
@@ -171,11 +166,14 @@ class PokemonTrade:
         self.check_and_trade()
 
     def load_pokemon_data(self):
+        """Load main pokemon data from database."""
         try:
-            with open(self.mainpokemon_path, "r", encoding="utf-8") as file:
-                return json.load(file)
-        except FileNotFoundError as e:
-            show_warning_with_traceback(parent=self.parent_window, exception=e, message="Main Pokémon file not found!")
+            from .database_manager import get_db
+            db = get_db()
+            main_pokemon = db.get_main_pokemon()
+            return [main_pokemon] if main_pokemon else []
+        except Exception as e:
+            show_warning_with_traceback(parent=self.parent_window, exception=e, message="Error loading main Pokémon!")
             return []
 
     def check_and_trade(self):
@@ -600,26 +598,21 @@ class PokemonTrade:
             return None
 
     def replace_pokemon(self, new_pokemon):
+        """Replace the traded pokemon with the new one in the database."""
         try:
-            with open(self.mypokemon_path, 'r+') as file:
-                pokemon_list = json.load(file)
-
-                for idx, pokemon in enumerate(pokemon_list):
-                    if pokemon.get("individual_id") == self.individual_id:
-                        pokemon_list[idx] = new_pokemon
-                        break
-                else:
-                    self.logger.log_and_showinfo("warning","Could not find the Pokémon with the specified Individual ID.")
-                    return
-
-                file.seek(0)
-                file.truncate()
-                json.dump(pokemon_list, file, indent=2)
+            from .database_manager import get_db
+            db = get_db()
+            
+            # Delete the old pokemon
+            db.delete_pokemon(self.individual_id)
+            
+            # Save the new pokemon
+            db.save_pokemon(new_pokemon)
 
             self.logger.log_and_showinfo("warning",f"Successfully traded for {new_pokemon['name']}!")
             self.refresh_callback()
 
-        except (FileNotFoundError, json.JSONDecodeError) as e:
+        except Exception as e:
             show_warning_with_traceback(parent=self.parent_window, exception=e, message="Error updating Pokémon data.")
     
     def format_gender(self):

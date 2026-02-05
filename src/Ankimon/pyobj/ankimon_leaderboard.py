@@ -122,53 +122,56 @@ def get_unique_pokemon():
         return
 
     try:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_data = json.load(file)
-            pokemon_info = {}  # Define as a dictionary
-            id_list = []  # Initialize id_list as an empty list
+        from .database_manager import get_db
+        db = get_db()
+        pokemon_data = db.get_all_pokemon()
+        pokemon_info = {}  # Define as a dictionary
+        id_list = []  # Initialize id_list as an empty list
 
-            for pokemon in pokemon_data:
-                pokemon_id = int(pokemon.get("id"))
+        for pokemon in pokemon_data:
+            pokemon_id = int(pokemon.get("id"))
 
-                # Check if the pokemon_id is already in id_list
-                if pokemon_id not in id_list:
-                    id_list.append(pokemon_id)  # Add the ID to the list
+            # Check if the pokemon_id is already in id_list
+            if pokemon_id not in id_list:
+                id_list.append(pokemon_id)  # Add the ID to the list
 
-                    # Extract the name and individual_id
-                    individual_id = pokemon.get("individual_id")
-                    name = pokemon.get("name")
+                # Extract the name and individual_id
+                individual_id = pokemon.get("individual_id")
+                name = pokemon.get("name")
 
-                    # Add the extracted information to the dictionary with name as the key
-                    if individual_id:  # Make sure individual_id exists
-                        pokemon_info[name] = individual_id
+                # Add the extracted information to the dictionary with name as the key
+                if individual_id:  # Make sure individual_id exists
+                    pokemon_info[name] = individual_id
 
         return len(pokemon_info)
     except Exception as e:
-        showInfo(f"File not found: {mypokemon_path} or {e}")
+        showInfo(f"Error getting unique pokemon: {e}")
         return 1
 
 def get_total_pokemon():
     try:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_data = json.load(file)
-            total_pokemon = len(pokemon_data)
-            return total_pokemon
+        from .database_manager import get_db
+        db = get_db()
+        pokemon_data = db.get_all_pokemon()
+        total_pokemon = len(pokemon_data)
+        return total_pokemon
     except:
-        showInfo(f"File not found: {mypokemon_path}")
+        showInfo(f"Error getting total pokemon count")
         return 1
 
 def get_shinies():
     try:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_data = json.load(file)
-            shinies = 0
-            for pokemon in pokemon_data:
-                if pokemon.get("shiny") is True:
-                    shinies += 1
+        from .database_manager import get_db
+        db = get_db()
+        pokemon_data = db.get_all_pokemon()
+        shinies = 0
+        for pokemon in pokemon_data:
+            if pokemon.get("shiny") is True:
+                shinies += 1
 
-            return shinies
+        return shinies
     except:
-        showInfo(f"File not found: {mypokemon_path}")
+        showInfo(f"Error getting shinies count")
         return 0
 
 def show_api_key_dialog():

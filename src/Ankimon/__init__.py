@@ -637,13 +637,12 @@ if database_complete:
         rate_this_addon()
 
 if database_complete:
-    if mypokemon_path.is_file() is False:
+    # Check if user has any pokemon in database
+    from .pyobj.database_manager import get_db
+    db = get_db()
+    pokemon_list = db.get_all_pokemon()
+    if not pokemon_list:
         starter_window.display_starter_pokemon()
-    else:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_list = json.load(file)
-            if not pokemon_list :
-                starter_window.display_starter_pokemon()
 
 count_items_and_rewrite(itembag_path)
 

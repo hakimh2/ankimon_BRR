@@ -25,9 +25,10 @@ def find_trainer_rank(highest_level, trainer_level):
 
         # Count the number of shiny Pokémon
         shiny_pokemon_count = 0
-        with open(mypokemon_path, 'r', encoding='utf-8') as f:
-            my_pokemon = json.load(f)
-            shiny_pokemon_count = sum(1 for pokemon in my_pokemon if pokemon.get('shiny', False))  # Assuming 'shiny' is a key
+        from ..pyobj.database_manager import get_db
+        db = get_db()
+        my_pokemon = db.get_all_pokemon()
+        shiny_pokemon_count = sum(1 for pokemon in my_pokemon if pokemon.get('shiny', False))  # Assuming 'shiny' is a key
 
         # Count badges
         badge_count = len(get_achieved_badges())
@@ -74,9 +75,10 @@ def xp_share_gain_exp(logger, settings_obj, evo_window, main_pokemon_id, exp, xp
     remove_level_cap = settings_obj.get("misc.remove_level_cap")
     exp = int(exp * 0.5)  # Convert the experience to an integer
 
-    # Open the mypokemon_path JSON file and load the data
-    with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-        mypokemon_data = json.load(json_file)
+    # Load pokemon from database
+    from ..pyobj.database_manager import get_db
+    db = get_db()
+    mypokemon_data = db.get_all_pokemon()
 
     msg = ""
     evolution_triggered = False
@@ -122,17 +124,17 @@ def xp_share_gain_exp(logger, settings_obj, evo_window, main_pokemon_id, exp, xp
             msg += f"{pokemon['name']} is about to evolve to {return_name_for_id(evo_id).capitalize()} at level {pokemon['level']}"
             evolution_triggered = True
 
-            # Write the XP/level changes to file BEFORE calling evolution
-            with open(mypokemon_path, "w", encoding="utf-8") as json_file:
-                json.dump(mypokemon_data, json_file, indent=4)
+            # Write the XP/level changes to database BEFORE calling evolution
+            for p in mypokemon_data:
+                db.save_pokemon(p)
 
             # Now call evolution (which will read the updated file and handle the evolution)
             break  # Exit the loop since we found and processed the Pokemon
 
-    # Only write to file if no evolution was triggered (since evolution already wrote to file)
+    # Only save to database if no evolution was triggered (since evolution already saved)
     if not evolution_triggered:
-        with open(mypokemon_path, "w", encoding="utf-8") as json_file:
-            json.dump(mypokemon_data, json_file, indent=4)
+        for p in mypokemon_data:
+            db.save_pokemon(p)
 
     logger.log("info", f"{msg}")
     return original_exp  # Return the amount of experience added

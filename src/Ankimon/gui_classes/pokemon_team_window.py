@@ -112,10 +112,10 @@ class PokemonTeamDialog(QDialog):
         self.exec()
 
     def load_my_pokemon(self):
-        """Load the player's Pokémon data from a JSON string (in this case, hardcoded)"""
-        # Replace the following with the actual loading method if from a file:
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_data = json.load(file)
+        """Load the player's Pokémon data from database"""
+        from ..pyobj.database_manager import get_db
+        db = get_db()
+        pokemon_data = db.get_all_pokemon()
         return pokemon_data
 
     def load_pokemon_team(self):

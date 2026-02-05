@@ -93,11 +93,11 @@ class TrainerCard:
         return len(get_achieved_badges())
 
     def get_highest_level_pokemon(self):
-        """Method to find the name of the highest-level Pokémon from the mypokemon_path."""
+        """Method to find the name of the highest-level Pokémon from the database."""
         try:
-            # Read the Pokémon data from the file
-            with open(mypokemon_path, "r", encoding="utf-8") as file:
-                pokemon_data = json.load(file)
+            from .database_manager import get_db
+            db = get_db()
+            pokemon_data = db.get_all_pokemon()
 
             if not pokemon_data:
                 return None  # Return None if the data is empty
@@ -105,31 +105,25 @@ class TrainerCard:
             # Find the Pokémon with the highest level and return its name
             highest_pokemon = max(pokemon_data, key=lambda p: p.get("level", 0))
             return f"{highest_pokemon.get('name', 'None')} (Level {highest_pokemon.get('level', 0)})"
-        except FileNotFoundError:
-            showInfo(f"File not found: {mypokemon_path}")
-            return "None"
-        except json.JSONDecodeError:
-            showInfo(f"Error decoding JSON from file: {mypokemon_path}")
+        except Exception as e:
+            showInfo(f"Error getting highest level pokemon: {e}")
             return "None"
 
     def highest_pokemon_level(self):
-        """Method to find the name of the highest-level Pokémon from the mypokemon_path."""
+        """Method to find the highest level from all Pokémon in the database."""
         try:
-            # Read the Pokémon data from the file
-            with open(mypokemon_path, "r", encoding="utf-8") as file:
-                pokemon_data = json.load(file)
+            from .database_manager import get_db
+            db = get_db()
+            pokemon_data = db.get_all_pokemon()
 
             if not pokemon_data:
-                return int(0)  # Return None if the data is empty
+                return int(0)  # Return 0 if the data is empty
 
-            # Find the Pokémon with the highest level and return its name
+            # Find the Pokémon with the highest level and return its level
             highest_pokemon = max(pokemon_data, key=lambda p: p.get("level", 0))
             return int(highest_pokemon.get("level", 0))
-        except FileNotFoundError:
-            showInfo(f"File not found: {mypokemon_path}")
-            return int(0)
-        except json.JSONDecodeError:
-            showInfo(f"Error decoding JSON from file: {mypokemon_path}")
+        except Exception as e:
+            showInfo(f"Error getting highest level: {e}")
             return int(0)
 
     def add_achievement(self, achievement):
@@ -144,12 +138,10 @@ class TrainerCard:
             if not team_data:
                 return "No Team Set"
 
-            # Optimization: Load mypokemon data once
-            try:
-                with open(mypokemon_path, "r", encoding="utf-8") as f:
-                    my_pokemon_data = json.load(f)
-            except Exception:
-                my_pokemon_data = []
+            # Load pokemon data from database
+            from .database_manager import get_db
+            db = get_db()
+            my_pokemon_data = db.get_all_pokemon()
 
             # Create lookup dict
             pokemon_map = {str(p.get("individual_id")): p for p in my_pokemon_data}

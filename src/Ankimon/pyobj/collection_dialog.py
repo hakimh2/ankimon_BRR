@@ -469,15 +469,15 @@ class PokemonCollectionDialog(QDialog):
 
 
 def PokemonTrade(name, id, level, ability, iv, ev, gender, attacks, position):
-     # Load the data from the file
-    with open(mainpokemon_path, "r", encoding="utf-8") as file:
-        pokemon_data = json.load(file)
+     # Load the data from database
+    from .database_manager import get_db
+    db = get_db()
+    main_pokemon = db.get_main_pokemon()
     #check if player tries to trade mainpokemon
     found = False
-    for pokemons in pokemon_data:
-        if pokemons["name"] == name and pokemons["id"] == id and pokemons["level"] == level and pokemons["ability"] == ability and pokemons["iv"] == iv and pokemons["ev"] == ev and pokemons["gender"] == gender and pokemons["attacks"] == attacks:
+    if main_pokemon:
+        if main_pokemon["name"] == name and main_pokemon["id"] == id and main_pokemon["level"] == level and main_pokemon["ability"] == ability and main_pokemon["iv"] == iv and main_pokemon["ev"] == ev and main_pokemon["gender"] == gender and main_pokemon["attacks"] == attacks:
             found = True
-            break
 
     if not found:
         # Create a main window

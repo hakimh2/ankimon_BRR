@@ -621,60 +621,52 @@ def save_error_code(error_code, logger=None):
         logger.log_and_showinfo("info",f"{error_fix_msg}")
 
 def get_main_pokemon_data():
-    with (open(str(mainpokemon_path), "r", encoding="utf-8") as json_file):
-        main_pokemon_datalist = json.load(json_file)
+    from .pyobj.database_manager import get_db
+    db = get_db()
+    main_pokemon_data = db.get_main_pokemon()
+    
+    if not main_pokemon_data:
+        return None
 
-    main_pokemon_data = []
-    for main_pokemon_data in main_pokemon_datalist:
-        _name = main_pokemon_data["name"]
-        if not main_pokemon_data.get('nickname') or main_pokemon_data.get('nickname') is None:
-            _nickname = None
-        else:
-            _nickname = main_pokemon_data['nickname']
-        _id = main_pokemon_data["id"]
-        _ability = main_pokemon_data["ability"]
-        _type = main_pokemon_data["type"]
-        _stats = main_pokemon_data["stats"]
-        _attacks = main_pokemon_data["attacks"]
-        _level = main_pokemon_data["level"]
-        _hp_base_stat = main_pokemon_data["stats"]["hp"]
-        _evolutions = search_pokedex(main_pokemon_data["name"], "evos")
-        _xp = main_pokemon_data.get("xp") or main_pokemon_data["stats"].get("xp", 0)
-        _ev = main_pokemon_data["ev"]
-        _iv = main_pokemon_data["iv"]
-        #mainpokemon_battle_stats = mainpokemon_stats
-        _battle_stats = {}
-        for d in [_stats, _iv, _ev]:
-            for key, value in d.items():
-                _battle_stats[key] = value
-        #mainpokemon_battle_stats += mainpokemon_iv
-        #mainpokemon_battle_stats += mainpokemon_ev
-        _hp = calculate_hp(_hp_base_stat, _level, _ev, _iv)
-        _current_hp = _hp
-        _base_experience = main_pokemon_data["base_experience"]
-        _growth_rate = main_pokemon_data["growth_rate"]
-        _gender = main_pokemon_data["gender"]
+    _name = main_pokemon_data["name"]
+    if not main_pokemon_data.get('nickname') or main_pokemon_data.get('nickname') is None:
+        _nickname = None
+    else:
+        _nickname = main_pokemon_data['nickname']
+    _id = main_pokemon_data["id"]
+    _ability = main_pokemon_data["ability"]
+    _type = main_pokemon_data["type"]
+    _stats = main_pokemon_data.get("stats") or main_pokemon_data.get("base_stats", {})
+    _attacks = main_pokemon_data["attacks"]
+    _level = main_pokemon_data["level"]
+    _hp_base_stat = _stats.get("hp", 1)
+    _growth_rate = main_pokemon_data["growth_rate"]
+    _base_experience = main_pokemon_data["base_experience"]
+    _ev = main_pokemon_data["ev"]
+    _iv = main_pokemon_data["iv"]
+    _gender = main_pokemon_data["gender"]
+    _shiny = main_pokemon_data.get("shiny", False)
+    _individual_id = main_pokemon_data.get("individual_id")
+    _pokemon_defeated = main_pokemon_data.get("pokemon_defeated", 0)
+    _current_hp = main_pokemon_data.get("current_hp")
+    _xp = main_pokemon_data.get("xp", 0)
+    _max_moves = main_pokemon_data.get("max_moves", [])
+    _mega = main_pokemon_data.get("mega", False)
+    _everstone = main_pokemon_data.get("everstone", False)
+    _friendship = main_pokemon_data.get("friendship", 0)
+    _held_item = main_pokemon_data.get("held_item")
+    _status = main_pokemon_data.get("status")
 
-        return (
-            _name,
-            _id,
-            _ability,
-            _type,
-            _stats,
-            _attacks,
-            _level,
-            _base_experience,
-            _xp,
-            _hp,
-            _current_hp,
-            _growth_rate,
-            _ev,
-            _iv,
-            _evolutions,
-            _battle_stats,
-            _gender,
-            _nickname
-        )
+    return {
+        "name": _name, "nickname": _nickname, "id": _id, "ability": _ability,
+        "type": _type, "stats": _stats, "attacks": _attacks,
+        "level": _level, "hp": _hp_base_stat, "growth_rate": _growth_rate,
+        "base_experience": _base_experience, "ev": _ev, "iv": _iv,
+        "gender": _gender, "shiny": _shiny, "individual_id": _individual_id,
+        "pokemon_defeated": _pokemon_defeated, "current_hp": _current_hp, "xp": _xp,
+        "max_moves": _max_moves, "mega": _mega, "everstone": _everstone,
+        "friendship": _friendship, "held_item": _held_item, "status": _status
+    }
 
 def play_sound(enemy_pokemon_id: int, settings_obj: Settings):
     if settings_obj.get("audio.sounds"):

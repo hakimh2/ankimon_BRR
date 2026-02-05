@@ -62,16 +62,14 @@ class Pokedex(QDialog):
 
         pokemon_list = None
 
-        if os.path.exists(mypokemon_path):
-            try:
-                with open(mypokemon_path, "r", encoding="utf-8") as file:
-                    pokemon_list = json.load(file)
-                    print("POKEDEX_DEBUG: Loaded pokemon_list!")
-
-            except json.JSONDecodeError:
-                print("POKEDEX_DEBUG: Invalid JSON in mypokemon.json at", mypokemon_path)
-            except Exception as e:
-                print("POKEDEX_DEBUG: Error reading mypokemon.json at", mypokemon_path, ":", str(e))
+        # Load pokemon from database
+        try:
+            from ..pyobj.database_manager import get_db
+            db = get_db()
+            pokemon_list = db.get_all_pokemon()
+            print("POKEDEX_DEBUG: Loaded pokemon_list from database!")
+        except Exception as e:
+            print("POKEDEX_DEBUG: Error loading from database:", str(e))
 
         # Extract shiny Pokémon IDs
         shiny_pokemon_ids = []

@@ -294,18 +294,10 @@ def save_fossil_pokemon(pokemon_id):
         "special_form": None,
         "tier": "Fossil",
     }
-    # Load existing Pokémon data if it exists
-    if mypokemon_path.is_file():
-        with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-            caught_pokemon_data = json.load(json_file)
-    else:
-        caught_pokemon_data = []
-
-    # Append the caught Pokémon's data to the list
-    caught_pokemon_data.append(caught_pokemon)
-    # Save the caught Pokémon's data to a JSON file
-    with open(str(mypokemon_path), "w") as json_file:
-        json.dump(caught_pokemon_data, json_file, indent=2)
+    # Save to database
+    from ..pyobj.database_manager import get_db
+    db = get_db()
+    db.save_pokemon(caught_pokemon)
 
 def get_levelup_move_for_pokemon(pokemon_name, level):
     """

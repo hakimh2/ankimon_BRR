@@ -425,10 +425,12 @@ class AnkimonDB:
                 with open(items_path, 'r', encoding='utf-8') as f:
                     items_list = json.load(f)
                 for item in items_list:
-                    item_name = item.get("name") or item.get("item_name")
+                    # items.json uses 'item' key, but also support 'name' and 'item_name'
+                    item_name = item.get("item") or item.get("name") or item.get("item_name")
                     quantity = item.get("quantity", item.get("amount", 1))
                     if item_name:
-                        self.save_item(item_name, quantity, item)
+                        extra_data = {"type": item.get("type")} if item.get("type") else None
+                        self.save_item(item_name, quantity, extra_data)
                         stats["items"] += 1
                 self._log("info", f"Migrated {stats['items']} items from items.json")
             except Exception as e:

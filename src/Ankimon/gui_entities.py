@@ -297,8 +297,9 @@ class Pokedex_Widget(QWidget):
         self.initUI()
 
     def read_poke_coll(self):
-        with (open(mypokemon_path, "r", encoding="utf-8") as json_file):
-            self.captured_pokemon_data = json.load(json_file)
+        from .pyobj.database_manager import get_db
+        db = get_db()
+        self.captured_pokemon_data = db.get_all_pokemon()
 
     def initUI(self):
         self.setWindowTitle("Pokédex")
