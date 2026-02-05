@@ -34,8 +34,8 @@ from aqt.gui_hooks import webview_will_set_content
 from aqt.webview import WebContent
 import markdown
 
-from .resources import generate_startup_files, user_path, IS_EXPERIMENTAL_BUILD, addon_ver, addon_dir
-generate_startup_files(addon_dir, user_path)
+from .resources import ensure_ankimon_infrastructure, user_path, IS_EXPERIMENTAL_BUILD, addon_ver, addon_dir
+ensure_ankimon_infrastructure(addon_dir, user_path)
 
 from .singletons import settings_obj
 no_more_news = settings_obj.get("misc.YouShallNotPass_Ankimon_News")

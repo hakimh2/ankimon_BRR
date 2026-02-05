@@ -7,7 +7,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     )
     
-from ..resources import rate_path
 from ..texts import rate_addon_text_label, thankyou_message_text, dont_show_this_button_text
 from ..utils import give_item
 from ..singletons import logger, test_window
@@ -18,8 +17,7 @@ def rate_this_addon():
     # Only check database
     db_rate_this = mw.ankimon_db.get_user_data("rate_this")
     
-    # Check if already rated (using string comparison as DB stores text)
-    if db_rate_this == "true":
+    if db_rate_this is True:
         return
 
     # If we get here, user hasn't rated yet
@@ -55,7 +53,7 @@ def rate_this_addon():
     def dont_show_this_button():
         rate_window.close()
         # Save to DB
-        mw.ankimon_db.set_user_data("rate_this", "true")
+        mw.ankimon_db.set_user_data("rate_this", True)
         logger.log_and_showinfo("info",dont_show_this_button_text)
 
     def rate_this_button():
@@ -65,7 +63,7 @@ def rate_this_addon():
         thankyou_message()
         
         # Save to DB
-        mw.ankimon_db.set_user_data("rate_this", "true")
+        mw.ankimon_db.set_user_data("rate_this", True)
         
         test_window.rate_display_item("potion")
         # add item to item list

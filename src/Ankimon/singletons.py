@@ -28,8 +28,7 @@ from .pyobj.trainer_card import TrainerCard
 from .pyobj.translator import Translator
 from .pyobj.test_window import TestWindow
 from .pyobj.achievement_window import AchievementWindow
-from .pyobj.data_handler import DataHandler
-from .pyobj.data_handler_window import DataHandlerWindow
+from .pyobj.settings_window import SettingsWindow
 from .pyobj.ankimon_tracker_window import AnkimonTrackerWindow
 from .pyobj.ankimon_shop import PokemonShopManager
 from .pokedex.pokedex_obj import Pokedex
@@ -155,9 +154,6 @@ test_window = TestWindow(
 )
 
 achievement_bag = AchievementWindow()
-
-data_handler_obj = DataHandler()
-data_handler_window = DataHandlerWindow(data_handler=data_handler_obj)
 
 # Initialize the Pokémon Shop Manager
 shop_manager = PokemonShopManager(

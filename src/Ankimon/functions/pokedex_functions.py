@@ -3,7 +3,6 @@ from ..resources import (
     pokedesc_lang_path,
     pokeapi_db_path,
     pokenames_lang_path,
-    mypokemon_path,
     learnset_path,
     moves_file_path,
     poke_evo_path,
@@ -213,14 +212,11 @@ def get_pokemon_diff_lang_name(pokemon_id: int, language: int):
 
 def extract_ids_from_file():
     try:
-        filename = mypokemon_path
-        with open(filename, "r", encoding="utf-8") as file:
-            data = json.load(file)
-            ids = [character["id"] for character in data]
-            owned_pokemon_ids = ids
-            owned_pokemon_ids = sorted(list(set(owned_pokemon_ids)))
-            # showWarning(f"Owned Pokémon IDs: {owned_pokemon_ids}")
-            return owned_pokemon_ids
+        db = mw.ankimon_db
+        pokemon_list = db.get_all_pokemon()
+        ids = [pokemon["id"] for pokemon in pokemon_list]
+        owned_pokemon_ids = sorted(list(set(ids)))
+        return owned_pokemon_ids
     except Exception as e:
         show_warning_with_traceback(
             parent=mw, exception=e, message="Error extracting IDs from file"

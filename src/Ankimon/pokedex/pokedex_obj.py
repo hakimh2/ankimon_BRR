@@ -4,7 +4,7 @@ from aqt import QDialog, QVBoxLayout, QWebEngineView, mw
 from PyQt6.QtCore import QUrlQuery
 from aqt.qt import Qt, QFile, QUrl, QFrame, QPushButton
 from aqt.utils import showInfo
-from ..resources import mypokemon_path, pokemon_history_path
+
 
 class Pokedex(QDialog):
     def __init__(self, addon_dir, ankimon_tracker):

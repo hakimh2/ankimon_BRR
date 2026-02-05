@@ -509,6 +509,31 @@ class AnkimonDB:
                 result[key] = val
         return result
 
+    def get_stats(self) -> Dict[str, int]:
+        """Returns a summary of database contents for synchronization/backup comparison."""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        
+        stats = {}
+        
+        # Count pokemon
+        cursor.execute("SELECT COUNT(*) as count FROM captured")
+        stats["pokemon"] = cursor.fetchone()["count"]
+        
+        # Count items
+        cursor.execute("SELECT COUNT(*) as count FROM items")
+        stats["items"] = cursor.fetchone()["count"]
+        
+        # Count history
+        cursor.execute("SELECT COUNT(*) as count FROM pokemon_history")
+        stats["history"] = cursor.fetchone()["count"]
+        
+        # Count badges
+        cursor.execute("SELECT COUNT(*) as count FROM badges")
+        stats["badges"] = cursor.fetchone()["count"]
+        
+        return stats
+
     # --- Migration from JSON Files ---
 
     def migrate_from_json(self, mypokemon_path: Path, mainpokemon_path: Path,

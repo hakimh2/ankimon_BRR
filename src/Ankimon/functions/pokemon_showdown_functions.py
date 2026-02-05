@@ -5,9 +5,9 @@ from aqt.qt import QDialog, QLabel,Qt, QVBoxLayout
 from PyQt6.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit
 
 from ..functions.pokedex_functions import search_pokedex
-from ..functions.url_functions import open_browser_window
+
 from ..utils import save_error_code
-from ..resources import mypokemon_path
+
 from ..singletons import main_pokemon, logger
 from ..pyobj.error_handler import show_warning_with_traceback
 
@@ -85,8 +85,7 @@ def export_all_pkmn_showdown():
     # Get all pokemon data
     pokemon_info_complete_text = ""
     try:
-        with (open(mypokemon_path, "r", encoding="utf-8") as json_file):
-            captured_pokemon_data = json.load(json_file)
+        captured_pokemon_data = mw.ankimon_db.get_all_pokemon()
 
             # Check if there are any captured Pokémon
             if captured_pokemon_data:
@@ -184,8 +183,7 @@ def flex_pokemon_collection():
 # Get all pokemon data
     pokemon_info_complete_text = ""
     try:
-        with (open(mypokemon_path, "r", encoding="utf-8") as json_file):
-            captured_pokemon_data = json.load(json_file)
+        captured_pokemon_data = mw.ankimon_db.get_all_pokemon()
 
             # Check if there are any captured Pokémon
             if captured_pokemon_data:

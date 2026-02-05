@@ -6,7 +6,7 @@ from PyQt6.QtGui import QPixmap, QFont, QIcon, QColor
 from PyQt6.QtCore import QSize, Qt
 from aqt.utils import showWarning, showInfo
 from aqt import mw, utils
-from ..resources import mainpokemon_path, mypokemon_path, pokeapi_db_path, moves_file_path, pokedex_path, rate_path
+from ..resources import pokeapi_db_path, moves_file_path, pokedex_path
 from ..functions.sprite_functions import get_sprite_path
 from datetime import datetime
 import uuid
@@ -60,13 +60,8 @@ def add_pokemon_to_collection(new_pokemon, refresh_callback=None, parent_window=
 def check_and_award_monthly_pokemon(logger):
     """Checks for and automatically awards the current monthly challenge Pokémon."""
     try:
-        should_check = False
-        if rate_path.is_file():
-            with open(rate_path, "r", encoding="utf-8") as f:
-                if json.load(f).get("rate_this") is True:
-                    should_check = True
-        
-        if not should_check:
+        db = mw.ankimon_db
+        if db.get_user_data("rate_this") is not True:
             logger.log("info", "Monthly Pokemon check skipped: user has not rated the addon.")
             return
 
@@ -156,8 +151,6 @@ class PokemonTrade:
         self.refresh_callback = refresh_callback
         self.logger = logger
         self.parent_window = parent_window
-        self.mainpokemon_path = mainpokemon_path
-        self.mypokemon_path = mypokemon_path
         self.pokeapi_db_path = pokeapi_db_path
         self.moves_file_path = moves_file_path
         self.pokedex_path = pokedex_path
