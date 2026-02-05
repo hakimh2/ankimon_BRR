@@ -372,22 +372,19 @@ def daily_item_list():
 
 # Function to give an item to the player
 def give_item(item_name: str, item_type: Optional[str] = None):
-    with open(itembag_path, "r", encoding="utf-8") as json_file:
-        itembag_list = json.load(json_file)
-        # Check if the item exists and update quantity, otherwise append
-        for item in itembag_list:
-            if item.get("item") == item_name:
-                item["quantity"] += 1
-                break
-        else:
-            # Add a new item if not found
-            item_dict = {"item": item_name, "quantity": 1}
-            if item_type is not None:
-                item_dict["type"] = item_type
-            itembag_list.append(item_dict)
-    with open(itembag_path, 'w', encoding="utf-8") as json_file:
-        json.dump(itembag_list, json_file, indent=4)
-    #logger.log_and_showinfo('game', f"Player bought item {item_name.capitalize()}")
+    """Adds an item to the player's inventory using the database."""
+    from .pyobj.database_manager import get_db
+    db = get_db()
+    
+    # Get current item or create new
+    existing = db.get_item(item_name)
+    if existing:
+        new_qty = existing["quantity"] + 1
+    else:
+        new_qty = 1
+    
+    extra_data = {"type": item_type} if item_type else None
+    db.save_item(item_name, new_qty, extra_data)
 
 #Function to return a cost of an item
 def get_item_price(item_name, file_path=csv_file_items_cost):
@@ -918,41 +915,22 @@ def substract_item_from_itembag(item: str, quantity: int=1) -> None:
             - Item not found in the item bag.
             - Item does not have a 'quantity' field.
             - Insufficient quantity to subtract.
-    """
-    with open(itembag_path, "r", encoding="utf-8") as f:
-        items_list = json.load(f)
-
-    # First, we check if the item is in the item bag
-    if item not in [item_data["item"] for item_data in items_list]:
+    """Removes a specified quantity of an item from the item bag using the database."""
+    from .pyobj.database_manager import get_db
+    db = get_db()
+    
+    existing = db.get_item(item)
+    if not existing:
         mw.logger.log_and_showinfo("error", f"Could not find {item} in the item bag.")
         return
-
-    # Now that we know the item is in the item bag, we retrieve its index
-    index = None
-    for i in range(len(items_list)):
-        if items_list[i]["item"] == item:
-            index = i
-            break
-
-    # Now we check whether we can actually substract the chosen amount
-    if items_list[index].get("quantity") is None:
-        mw.logger.log_and_showinfo("error", f"{item} does not seem to have a 'quantity' attribute in the item bag.")
+    
+    current_qty = existing["quantity"]
+    if current_qty < quantity:
+        mw.logger.log_and_showinfo("error", f"There are {current_qty} instances of {item} in the item bag, but you are trying to remove {quantity}.")
         return
-    if items_list[index].get("quantity") < quantity:
-        mw.logger.log_and_showinfo("error", f"There are {items_list[index].get('quantity')} instances of {item} in the item bag, but you are trying to remove {quantity}.")
-        return
-
-    # Finally, we substract the given amount
-    if items_list[index].get("quantity") == quantity:
-        del items_list[index]
-        with open(str(itembag_path), "w") as f:
-            json.dump(items_list, f, indent=2)
-        return
-    if items_list[index].get("quantity") > quantity:
-        items_list[index]["quantity"] -= quantity
-        with open(str(itembag_path), "w") as f:
-            json.dump(items_list, f, indent=2)
-        return
+    
+    # Use negative delta to decrease quantity
+    db.update_item_quantity(item, -quantity)
 
 def close_anki():
     mw.close()

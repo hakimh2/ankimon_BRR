@@ -412,10 +412,10 @@ def save_main_pokemon_progress(
         main_pokemon.xp += exp
         level_cap = 100
     try:
-        if mainpokemon_path.is_file():
-            with open(mainpokemon_path, "r", encoding="utf-8") as json_file:
-                main_pokemon_data = json.load(json_file)
-        else:
+        from ..pyobj.database_manager import get_db
+        db = get_db()
+        main_pokemon_data = db.get_main_pokemon()
+        if not main_pokemon_data:
             showWarning(translator.translate("missing_mainpokemon_data"))
     except Exception as e:
         show_warning_with_traceback(parent=mw, exception=e, message="Error loading main pokemon data.")
@@ -527,45 +527,25 @@ def save_main_pokemon_progress(
 # --- Utility: Sync mainpokemon to mypokemon ---
 def sync_mainpokemon_to_mypokemon(main_pokemon, mainpokemon_path, mypokemon_path):
     """
-    Update the relevant entry in mypokemon file with the latest values from mainpokemon file.
-    Args:
-        main_pokemon: The main PokemonObject (should have individual_id).
-        mainpokemon_path: Path to mainpokemon.json.
-        mypokemon_path: Path to mypokemon.json.
+    Update the relevant entry in mypokemon database with the latest values from mainpokemon.
+    Uses database instead of JSON files.
     """
-    import json
-    # Load mainpokemon data
-    if not mainpokemon_path.is_file():
+    from ..pyobj.database_manager import get_db
+    db = get_db()
+    
+    # Get main pokemon from database
+    main_entry = db.get_main_pokemon()
+    if not main_entry:
         return
-    with open(mainpokemon_path, "r", encoding="utf-8") as f:
-        main_data = json.load(f)
-    if not main_data:
-        return
-    # Use the first (and only) mainpokemon entry
-    main_entry = main_data[0] if isinstance(main_data, list) else main_data
+    
     main_id = main_entry.get("individual_id", None)
     if not main_id:
         main_id = getattr(main_pokemon, "individual_id", None)
     if not main_id:
         return
-    # Load mypokemon data
-    if not mypokemon_path.is_file():
-        return
-    with open(mypokemon_path, "r", encoding="utf-8") as f:
-        my_data = json.load(f)
-    # Find and update the entry with matching individual_id
-    updated = False
-    for idx, entry in enumerate(my_data):
-        if entry.get("individual_id") == main_id:
-            # Update all keys from main_entry (except those you want to preserve in mypokemon)
-            for k, v in main_entry.items():
-                entry[k] = v
-            my_data[idx] = entry
-            updated = True
-            break
-    if updated:
-        with open(mypokemon_path, "w", encoding="utf-8") as f:
-            json.dump(my_data, f, indent=2)
+    
+    # Save/update in captured_pokemon table
+    db.save_pokemon(main_entry)
     return
 
 def kill_pokemon(

@@ -115,15 +115,15 @@ class PokemonCollectionDialog(QDialog):
         self.setup_ui(pokemon_list)
 
     def load_pokemon_data(self):
-        """Reads the mypokemon.json file and loads Pokémon data into self.pokemon_list."""
+        """Loads Pokémon data from the database."""
+        from .database_manager import get_db
+        db = get_db()
         try:
-            with open(self.mypokemon_path, "r", encoding="utf-8") as file:
-                self.pokemon_list = json.load(file)
-                return self.pokemon_list
-        except FileNotFoundError:
-            self.logger.log("error","mypokemon.json file not found.")
-        except json.JSONDecodeError:
-            self.logger.log("error","mypokemon.json file not found.")
+            self.pokemon_list = db.get_all_pokemon()
+            return self.pokemon_list
+        except Exception as e:
+            self.logger.log("error", f"Error loading pokemon: {e}")
+            return []
 
     def refresh_pokemon_collection(self):
         """Clear all items from the scroll layout that display Pokémon."""
@@ -597,32 +597,27 @@ def PokemonTradeIn(number_code, old_pokemon_name, position):
 
 
 def trade_pokemon(old_pokemon_name, pokemon_trade, position):
+    """Trades a pokemon by saving the new pokemon to the database."""
+    from .database_manager import get_db
+    db = get_db()
+    
     try:
-        # Load the current list of Pokemon
-        with open(mypokemon_path, "r", encoding="utf-8") as file:
-            pokemon_list = json.load(file)
-    except FileNotFoundError:
-        print("The Pokemon file was not found. Please check the file path.")
-        return
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
-        return
-
-    # Find and replace the specific Pokemon's information
-    for i, pokemon in enumerate(pokemon_list):
-        pokemon_list[position] = pokemon_trade  # Replace with new Pokemon data
-        break
-    else:
-        showWarning("info",f"Pokemon named '{old_pokemon_name}' not found.")
-        return
-
-    # Write the updated data back to the file
-    try:
-        with open(mypokemon_path, 'w') as file:
-            json.dump(pokemon_list, file, indent=2)
+        # Get all pokemon to find the one at position
+        pokemon_list = db.get_all_pokemon()
+        if position < len(pokemon_list):
+            old_pokemon = pokemon_list[position]
+            # Delete old pokemon
+            if old_pokemon.get("individual_id"):
+                db.delete_pokemon(old_pokemon["individual_id"])
+        
+        # Save new traded pokemon
+        import uuid
+        if not pokemon_trade.get("individual_id"):
+            pokemon_trade["individual_id"] = str(uuid.uuid4())
+        db.save_pokemon(pokemon_trade)
         showWarning(f"{old_pokemon_name} has been traded successfully!")
     except Exception as e:
-        show_warning_with_traceback(parent=mw, exception=e, message=f"An error occurred while writing to the file: {e}")
+        show_warning_with_traceback(parent=mw, exception=e, message=f"An error occurred during trade: {e}")
 
 def MainPokemon(
         pokemon_data: dict,
@@ -633,30 +628,18 @@ def MainPokemon(
         test_window: TestWindow,
         ):
     from ..functions.migration import migrate_starter_individual_id
+    from .database_manager import get_db
     migrate_starter_individual_id()
+    db = get_db()
+    
     # --- Save the existing mainpokemon to mypokemon before replacing ---
     try:
-        # Load the current mainpokemon
-        with open(mainpokemon_path, "r", encoding="utf-8") as f:
-            current_main_list = json.load(f)
-        if current_main_list:
-            current_main = current_main_list[0]
-            # Load mypokemon
-            with open(mypokemon_path, "r", encoding="utf-8") as f:
-                mypokemondata = json.load(f)
-            # Update or append the current mainpokemon in mypokemon
-            found = False
-            for idx, pkmn in enumerate(mypokemondata):
-                if pkmn.get("individual_id") == current_main.get("individual_id"):
-                    mypokemondata[idx] = current_main
-                    found = True
-                    break
-            if not found:
-                mypokemondata.append(current_main)
-            with open(mypokemon_path, "w", encoding="utf-8") as f:
-                json.dump(mypokemondata, f, indent=2)
+        current_main = db.get_main_pokemon()
+        if current_main:
+            # Update or save the current main pokemon to captured_pokemon
+            db.save_pokemon(current_main)
     except Exception:
-        pass  # If files don't exist, just continue
+        pass  # If no main pokemon exists, just continue
 
     # --- Now proceed to set the new mainpokemon as before ---
     pokemon_id = pokemon_data.get("id")
@@ -713,10 +696,8 @@ def MainPokemon(
     # Update existing reference
     main_pokemon.__dict__.update(new_main_pokemon.__dict__)
 
-    # Save to JSON using the object's native serialization
-    main_pokemon_data = [main_pokemon.to_dict()]
-    with open(mainpokemon_path, "w") as f:
-        json.dump(main_pokemon_data, f, indent=2)
+    # Save to database
+    db.save_main_pokemon(main_pokemon.to_dict())
 
     logger.log_and_showinfo(
         "info",
