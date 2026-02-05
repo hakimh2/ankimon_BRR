@@ -38,6 +38,7 @@ from .pyobj.evolution_window import EvoWindow
 from .pyobj.starter_window import StarterWindow
 from .pyobj.item_window import ItemWindow
 from .pyobj.pc_box import PokemonPC
+from .pyobj.database_manager import get_db
 from .gui_entities import (
     License,
     Credits,
@@ -52,6 +53,9 @@ from .resources import addon_dir, itembag_path
 
 # start loggerobject for Ankimon
 logger = ShowInfoLogger()
+
+# Initialize the database (this also runs migrations on first startup)
+ankimon_db = get_db(logger)
 
 # Create the Settings object
 settings_obj = Settings()

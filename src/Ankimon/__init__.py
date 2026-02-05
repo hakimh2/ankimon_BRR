@@ -117,7 +117,8 @@ from .singletons import (
     item_window,
     version_dialog,
     achievements,
-    pokemon_pc
+    pokemon_pc,
+    ankimon_db,
 )
 
 from .pyobj.pokemon_trade import check_and_award_monthly_pokemon
@@ -146,6 +147,17 @@ except Exception as e:
     show_warning_with_traceback(parent=mw, exception=e, message="Backup error:")
 
 backup_manager = BackupManager(logger, settings_obj)
+
+# Migrate existing JSON data to SQLite database (one-time operation)
+if not ankimon_db.is_migrated():
+    try:
+        from .resources import mypokemon_path, mainpokemon_path, itembag_path, badgebag_path
+        migration_stats = ankimon_db.migrate_from_json(
+            mypokemon_path, mainpokemon_path, itembag_path, badgebag_path
+        )
+        logger.log("info", f"Database migration complete: {migration_stats}")
+    except Exception as e:
+        show_warning_with_traceback(parent=mw, exception=e, message="Database migration error:")
 
 if settings_obj.get("misc.developer_mode"):
     backup_manager.create_backup(manual=False)
