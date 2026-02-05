@@ -462,6 +462,47 @@ class AnkimonDB:
         )
         conn.commit()
 
+        # --- Integrity Check ---
+        # Verify that database counts match expected counts from JSON files
+        integrity_issues = []
+        
+        # Count JSON entries
+        json_counts = {"pokemon": 0, "items": 0, "badges": 0}
+        try:
+            if mypokemon_path.is_file():
+                with open(mypokemon_path, 'r', encoding='utf-8') as f:
+                    json_counts["pokemon"] = len(json.load(f))
+            if items_path.is_file():
+                with open(items_path, 'r', encoding='utf-8') as f:
+                    json_counts["items"] = len(json.load(f))
+            if badges_path.is_file():
+                with open(badges_path, 'r', encoding='utf-8') as f:
+                    json_counts["badges"] = len(json.load(f))
+        except Exception as e:
+            self._log("warning", f"Could not read JSON files for integrity check: {e}")
+        
+        # Count database entries
+        db_counts = {"pokemon": 0, "items": 0, "badges": 0}
+        cursor.execute("SELECT COUNT(*) FROM all_pokemon")
+        db_counts["pokemon"] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM items")
+        db_counts["items"] = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM badges")
+        db_counts["badges"] = cursor.fetchone()[0]
+        
+        # Compare counts
+        for key in ["pokemon", "items", "badges"]:
+            if json_counts[key] > 0 and db_counts[key] < json_counts[key]:
+                integrity_issues.append(
+                    f"{key}: JSON has {json_counts[key]} entries but DB only has {db_counts[key]}"
+                )
+        
+        if integrity_issues:
+            self._log("warning", f"Migration integrity issues detected: {integrity_issues}")
+            stats["integrity_issues"] = integrity_issues
+        else:
+            self._log("info", "Migration integrity check passed - all counts match.")
+
         self._log("info", f"Migration complete: {stats}")
         return stats
 
