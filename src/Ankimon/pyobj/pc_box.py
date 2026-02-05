@@ -518,17 +518,16 @@ class PokemonPC(QDialog):
         return pixmap
 
     def load_pokemon_data(self) -> list:
-        """Reads the mypokemon.json file and loads Pokémon data into self.pokemon_list."""
+        """Reads Pokémon data from the database."""
         try:
-            with open(mypokemon_path, "r", encoding="utf-8") as file:
-                pokemon_list = json.load(file)
-                for i, pokemon in enumerate(pokemon_list):
-                    pokemon['original_index'] = i
-                return pokemon_list
-        except FileNotFoundError:
-            self.logger.log("error","mypokemon.json file not found.")
-        except json.JSONDecodeError:
-            self.logger.log("error","mypokemon.json file not found.")
+            from .database_manager import get_db
+            db = get_db()
+            pokemon_list = db.get_all_pokemon()
+            for i, pokemon in enumerate(pokemon_list):
+                pokemon['original_index'] = i
+            return pokemon_list
+        except Exception as e:
+            self.logger.log("error", f"Error loading pokemon data: {e}")
 
         return []
 
@@ -754,17 +753,14 @@ class PokemonPC(QDialog):
             - Refreshes the GUI to reflect the change.
             - Logs an info message if the Pokémon is not found in the list.
         """
-        pokemon_list = self.load_pokemon_data()
-        for i in range(len(pokemon_list)):
-            if pokemon_list[i].get("individual_id") == pokemon["individual_id"]:
-                is_currently_favorite = pokemon_list[i].get("is_favorite", False)
-                pokemon_list[i]["is_favorite"] = not is_currently_favorite
-
-                with open(str(mypokemon_path), "w", encoding="utf-8") as json_file:
-                    json.dump(pokemon_list, json_file, indent=2)
-
-                self.refresh_gui()
-                return
+        from .database_manager import get_db
+        db = get_db()
+        target_pokemon = db.get_pokemon(pokemon["individual_id"])
+        if target_pokemon:
+            target_pokemon["is_favorite"] = not target_pokemon.get("is_favorite", False)
+            db.save_pokemon(target_pokemon)
+            self.refresh_gui()
+            return
 
         if self.logger is not None:
             self.logger.log("info", f"Could not make/unmake {pokemon['name']} favorite")
@@ -773,7 +769,7 @@ class PokemonPC(QDialog):
         """
         Opens a window to select and give a held item to the specified Pokémon.
 
-        This function reads the available items from the item bag, filters out
+        This function reads the available items from the database, filters out
         non-holdable items (items with a non-None "type"), and presents the user with a
         selection window. Once an item is selected, it is assigned to the Pokémon, a
         confirmation message is shown, and the GUI is refreshed to reflect the change.
@@ -790,9 +786,16 @@ class PokemonPC(QDialog):
             - Logs and displays an info message using `ShowInfoLogger`.
             - Refreshes the GUI via `self.refresh_gui()`.
         """
-        with open(itembag_path, "r", encoding="utf-8") as f:
-            items_list = json.load(f)
-        items_names = [item_data["item"] for item_data in items_list if item_data.get("type") is None]
+        from .database_manager import get_db
+        db = get_db()
+        items_list = db.get_all_items()
+        # Filter to holdable items (items without a type, stored in data field)
+        items_names = []
+        for item in items_list:
+            item_data = item.get("data") or {}
+            if item_data.get("type") is None:
+                items_names.append(item.get("item_name") or item_data.get("item", ""))
+        items_names = [n for n in items_names if n]  # Remove empty strings
         pokemon_obj = PokemonObject.from_dict(pokemon)
 
         def func(item_name: str):
@@ -895,8 +898,10 @@ class PokemonPC(QDialog):
                     pokemon_list[i][key] = value
 
         if needs_update:
-            with open(str(mypokemon_path), "w", encoding="utf-8") as json_file:
-                json.dump(pokemon_list, json_file, indent=2)
+            from .database_manager import get_db
+            db = get_db()
+            for pokemon in pokemon_list:
+                db.save_pokemon(pokemon)
 
     def on_window_close(self):
         if self.pokemon_details_layout is not None:

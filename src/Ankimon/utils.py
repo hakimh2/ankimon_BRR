@@ -461,44 +461,22 @@ def random_fossil():
 
 def count_items_and_rewrite(file_path):
     """
-    Reads the items.json file, groups entries by all keys except 'quantity',
-    sums their quantities, and rewrites the file preserving every other field.
+    Consolidates item quantities in the database.
+    Legacy: Previously read from items.json, now uses database.
+    The file_path parameter is kept for backwards compatibility but ignored.
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            items = json.load(f)
-
-        aggregated = {}  # maps a frozenset of (key,value) pairs to the merged entry
-
-        for item_data in items:
-            # Normalize item_data to be a dictionary
-            if isinstance(item_data, str):
-                item_data = {"item": item_data, "quantity": 1}
-
-            if not isinstance(item_data, dict) or "item" not in item_data:
-                continue  # Skip malformed entries
-
-            # Create a key for aggregation from all fields except 'quantity'
-            key_dict = {k: v for k, v in item_data.items() if k != 'quantity'}
-            # The key must be hashable, so we use a frozenset of items.
-            agg_key = frozenset(key_dict.items())
-
-            quantity = item_data.get("quantity", 1)
-
-            if agg_key in aggregated:
-                aggregated[agg_key]["quantity"] += quantity
-            else:
-                # Start with a copy of the item data
-                aggregated[agg_key] = item_data.copy()
-                # Ensure quantity is set correctly
-                aggregated[agg_key]["quantity"] = quantity
-
-        updated_items = list(aggregated.values())
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(updated_items, f, indent=4, ensure_ascii=False)
-
-        print("items.json has been updated with aggregated quantities!")
+        from .pyobj.database_manager import get_db
+        db = get_db()
+        
+        # Get all items from database - they're already unique by item_name
+        # so no need to aggregate, the database handles this automatically
+        items = db.get_all_items()
+        
+        if items:
+            print(f"Database contains {len(items)} unique items.")
+        else:
+            print("No items in database.")
 
     except Exception as e:
         show_warning_with_traceback(exception=e, message=f"An unexpected error occurred: {e}")

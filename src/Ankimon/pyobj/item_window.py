@@ -273,21 +273,17 @@ class ItemWindow(QWidget):
     def give_held_item(self, comboBox, item_name):
         individual_id = comboBox.itemData(comboBox.currentIndex(), role=UserRole)
         try:
-             with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-                pokemon_list_data = json.load(json_file)
-                target_pokemon_data = None
-                for pokemon in pokemon_list_data:
-                    if pokemon.get('individual_id') == individual_id:
-                        target_pokemon_data = pokemon
-                        break
-                
-                if target_pokemon_data:
-                    pokemon_obj = PokemonObject.from_dict(target_pokemon_data)
-                    pokemon_obj.give_held_item(item_name)
-                    self.logger.log_and_showinfo("info", f"{item_name} was given to {target_pokemon_data.get('name')}.")
-                    self.renewWidgets()
-                else:
-                    self.logger.log_and_showinfo("error", "Could not find Pokemon data.")
+            from .database_manager import get_db
+            db = get_db()
+            target_pokemon_data = db.get_pokemon(individual_id)
+            
+            if target_pokemon_data:
+                pokemon_obj = PokemonObject.from_dict(target_pokemon_data)
+                pokemon_obj.give_held_item(item_name)
+                self.logger.log_and_showinfo("info", f"{item_name} was given to {target_pokemon_data.get('name')}.")
+                self.renewWidgets()
+            else:
+                self.logger.log_and_showinfo("error", "Could not find Pokemon data.")
 
         except Exception as e:
             self.logger.log_and_showinfo("error", f"Error giving item: {e}")
@@ -381,19 +377,20 @@ class ItemWindow(QWidget):
 
     def PokemonList(self, comboBox):
         try:
-            with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-                captured_pokemon_data = json.load(json_file)
-                if captured_pokemon_data:
-                    for pokemon in captured_pokemon_data:
-                        pokemon_name = pokemon['name']
-                        individual_id = pokemon.get('individual_id', None)
-                        id_ = pokemon.get('id', None)
-                        if individual_id and id_:  # Ensure the ID exists
-                            # Add Pokémon name to comboBox
-                            comboBox.addItem(pokemon_name)
-                            # Store both individual_id and id as separate data using roles
-                            comboBox.setItemData(comboBox.count() - 1, individual_id, role=UserRole)
-                            comboBox.setItemData(comboBox.count() - 1, id_, role=UserRole + 1)
+            from .database_manager import get_db
+            db = get_db()
+            captured_pokemon_data = db.get_all_pokemon()
+            if captured_pokemon_data:
+                for pokemon in captured_pokemon_data:
+                    pokemon_name = pokemon['name']
+                    individual_id = pokemon.get('individual_id', None)
+                    id_ = pokemon.get('id', None)
+                    if individual_id and id_:  # Ensure the ID exists
+                        # Add Pokémon name to comboBox
+                        comboBox.addItem(pokemon_name)
+                        # Store both individual_id and id as separate data using roles
+                        comboBox.setItemData(comboBox.count() - 1, individual_id, role=UserRole)
+                        comboBox.setItemData(comboBox.count() - 1, id_, role=UserRole + 1)
         except Exception as e:
             self.logger.log_and_showinfo("error", f"Error loading Pokémon list: {e}")
 
@@ -498,22 +495,37 @@ class ItemWindow(QWidget):
             self.logger.log_and_showinfo("error", f"Error loading evolution items: {e}")
 
     def write_items_file(self, itembag_list: list[Any]):
-        with open(itembag_path, 'w') as json_file:
-            json.dump(itembag_list, json_file)
+        """Writes items to the database. Legacy method kept for compatibility."""
+        from .database_manager import get_db
+        db = get_db()
+        for item in itembag_list:
+            item_name = item.get("item", "")
+            quantity = item.get("quantity", 1)
+            if item_name:
+                db.save_item(item_name, quantity, item)
 
     def read_items_file(self):
         """
-        Reads the list from the JSON file. If the file contains malformed items,
-        it tries to fix them by converting strings to the correct structure.
+        Reads the item list from the database.
+        Returns items in the expected format for the UI.
         """
         try:
-            with open(self.itembag_path, "r", encoding="utf-8") as json_file:
-                return json.load(json_file)
-        except json.JSONDecodeError:
-            self.logger.log("error", "Malformed JSON detected. Attempting to fix.")
-            itembag_list = self._fix_and_load_items()
-            self.write_items_file(itembag_list)
-            return itembag_list
+            from .database_manager import get_db
+            db = get_db()
+            items = db.get_all_items()
+            # Convert database format to UI format
+            result = []
+            for item in items:
+                item_data = item.get("data") or {}
+                result.append({
+                    "item": item.get("item_name") or item_data.get("item", ""),
+                    "quantity": item.get("quantity", 1),
+                    "type": item_data.get("type")
+                })
+            return result
+        except Exception as e:
+            self.logger.log("error", f"Error reading items from database: {e}")
+            return []
 
     def _fix_and_load_items(self):
         """
