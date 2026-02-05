@@ -6,6 +6,7 @@ from ..resources import mypokemon_path
 from .pokemon_functions import find_experience_for_level
 from .pokedex_functions import check_evolution_for_pokemon, return_name_for_id
 from aqt.utils import showInfo, showWarning
+from aqt import mw
 
 def find_trainer_rank(highest_level, trainer_level):
     """
@@ -25,8 +26,7 @@ def find_trainer_rank(highest_level, trainer_level):
 
         # Count the number of shiny Pokémon
         shiny_pokemon_count = 0
-        from ..pyobj.database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         my_pokemon = db.get_all_pokemon()
         shiny_pokemon_count = sum(1 for pokemon in my_pokemon if pokemon.get('shiny', False))  # Assuming 'shiny' is a key
 
@@ -76,8 +76,7 @@ def xp_share_gain_exp(logger, settings_obj, evo_window, main_pokemon_id, exp, xp
     exp = int(exp * 0.5)  # Convert the experience to an integer
 
     # Load pokemon from database
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     mypokemon_data = db.get_all_pokemon()
 
     msg = ""

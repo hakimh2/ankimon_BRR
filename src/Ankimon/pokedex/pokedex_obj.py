@@ -64,8 +64,7 @@ class Pokedex(QDialog):
 
         # Load pokemon from database
         try:
-            from ..pyobj.database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             pokemon_list = db.get_all_pokemon()
             print("POKEDEX_DEBUG: Loaded pokemon_list from database!")
         except Exception as e:

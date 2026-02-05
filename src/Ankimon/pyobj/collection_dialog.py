@@ -116,8 +116,7 @@ class PokemonCollectionDialog(QDialog):
 
     def load_pokemon_data(self):
         """Loads Pokémon data from the database."""
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         try:
             self.pokemon_list = db.get_all_pokemon()
             return self.pokemon_list
@@ -470,8 +469,7 @@ class PokemonCollectionDialog(QDialog):
 
 def PokemonTrade(name, id, level, ability, iv, ev, gender, attacks, position):
      # Load the data from database
-    from .database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     main_pokemon = db.get_main_pokemon()
     #check if player tries to trade mainpokemon
     found = False
@@ -598,8 +596,7 @@ def PokemonTradeIn(number_code, old_pokemon_name, position):
 
 def trade_pokemon(old_pokemon_name, pokemon_trade, position):
     """Trades a pokemon by saving the new pokemon to the database."""
-    from .database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     try:
         # Get all pokemon to find the one at position
@@ -628,9 +625,9 @@ def MainPokemon(
         test_window: TestWindow,
         ):
     from ..functions.migration import migrate_starter_individual_id
-    from .database_manager import get_db
     migrate_starter_individual_id()
-    db = get_db()
+    migrate_starter_individual_id()
+    db = mw.ankimon_db
     
     # --- Save the existing mainpokemon to mypokemon before replacing ---
     try:

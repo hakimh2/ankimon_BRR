@@ -594,8 +594,7 @@ def remember_attack(
     individual_id: str, attacks: list[str], new_attack: str, logger: ShowInfoLogger
 ):
     """Learn a new attack using database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     if new_attack in attacks:
         logger.log_and_showinfo("warning", "Your pokemon already knows this move!")
@@ -643,8 +642,7 @@ def forget_attack(
     logger: ShowInfoLogger,
 ) -> None:
     """Forget a move using database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
 
     pokemon_data = db.get_pokemon(individual_id)
     if not pokemon_data:
@@ -720,8 +718,7 @@ def tm_attack_details_window(
     )  # TMs that can be learnt by the Pokemon
     
     # Get owned TMs from database
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     all_items = db.get_all_items()
     owned_tms = [item["item_name"] for item in all_items if item.get("extra_data", {}).get("type") == "TM"]
     attack_set = [tm for tm in tm_learnset if tm in owned_tms]
@@ -787,8 +784,7 @@ def rename_pkmn(
     refresh_callback,
 ):
     """Rename a pokemon using database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     try:
         pokemon = db.get_pokemon(individual_id)
@@ -812,8 +808,7 @@ def PokemonFree(
     individual_id: str, name: str, logger: ShowInfoLogger, refresh_callback
 ):
     """Release a pokemon using database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     # Confirmation dialog
     reply = QMessageBox.question(

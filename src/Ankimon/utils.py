@@ -373,8 +373,7 @@ def daily_item_list():
 # Function to give an item to the player
 def give_item(item_name: str, item_type: Optional[str] = None):
     """Adds an item to the player's inventory using the database."""
-    from .pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     # Get current item or create new
     existing = db.get_item(item_name)
@@ -466,8 +465,7 @@ def count_items_and_rewrite(file_path):
     The file_path parameter is kept for backwards compatibility but ignored.
     """
     try:
-        from .pyobj.database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         
         # Get all items from database - they're already unique by item_name
         # so no need to aggregate, the database handles this automatically
@@ -621,9 +619,7 @@ def save_error_code(error_code, logger=None):
         logger.log_and_showinfo("info",f"{error_fix_msg}")
 
 def get_main_pokemon_data():
-    from .pyobj.database_manager import get_db
-    db = get_db()
-    main_pokemon_data = db.get_main_pokemon()
+    main_pokemon_data = mw.ankimon_db.get_main_pokemon()
     
     if not main_pokemon_data:
         return None
@@ -679,9 +675,7 @@ def play_sound(enemy_pokemon_id: int, settings_obj: Settings):
 
 def load_collected_pokemon_ids() -> set:
     """Loads all captured pokemon IDs from the database."""
-    from .pyobj.database_manager import get_db
-    db = get_db()
-    return db.get_all_pokemon_ids()
+    return mw.ankimon_db.get_all_pokemon_ids()
 
 def limit_ev_yield(current_pokemon_ev: dict[str, int], ev_yield: dict[str, int]) -> dict[str, int]:
     """
@@ -886,8 +880,7 @@ def substract_item_from_itembag(item: str, quantity: int=1) -> None:
             - Item does not have a 'quantity' field.
             - Insufficient quantity to subtract.
     """
-    from .pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     existing = db.get_item(item)
     if not existing:

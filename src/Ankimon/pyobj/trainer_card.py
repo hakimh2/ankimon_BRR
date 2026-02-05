@@ -1,6 +1,7 @@
 from ..resources import trainer_sprites_path, mypokemon_path, team_pokemon_path
 from ..functions.trainer_functions import find_trainer_rank
 from ..functions.badges_functions import get_achieved_badges
+from aqt import mw
 from aqt.utils import showWarning, showInfo
 import math
 import json
@@ -95,8 +96,7 @@ class TrainerCard:
     def get_highest_level_pokemon(self):
         """Method to find the name of the highest-level Pokémon from the database."""
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             pokemon_data = db.get_all_pokemon()
 
             if not pokemon_data:
@@ -112,8 +112,7 @@ class TrainerCard:
     def highest_pokemon_level(self):
         """Method to find the highest level from all Pokémon in the database."""
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             pokemon_data = db.get_all_pokemon()
 
             if not pokemon_data:
@@ -139,8 +138,7 @@ class TrainerCard:
                 return "No Team Set"
 
             # Load pokemon data from database
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             my_pokemon_data = db.get_all_pokemon()
 
             # Create lookup dict

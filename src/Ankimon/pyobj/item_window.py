@@ -273,8 +273,7 @@ class ItemWindow(QWidget):
     def give_held_item(self, comboBox, item_name):
         individual_id = comboBox.itemData(comboBox.currentIndex(), role=UserRole)
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             target_pokemon_data = db.get_pokemon(individual_id)
             
             if target_pokemon_data:
@@ -377,8 +376,7 @@ class ItemWindow(QWidget):
 
     def PokemonList(self, comboBox):
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             captured_pokemon_data = db.get_all_pokemon()
             if captured_pokemon_data:
                 for pokemon in captured_pokemon_data:
@@ -496,8 +494,7 @@ class ItemWindow(QWidget):
 
     def write_items_file(self, itembag_list: list[Any]):
         """Writes items to the database. Legacy method kept for compatibility."""
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         for item in itembag_list:
             item_name = item.get("item", "")
             quantity = item.get("quantity", 1)
@@ -510,8 +507,7 @@ class ItemWindow(QWidget):
         Returns items in the expected format for the UI.
         """
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             items = db.get_all_items()
             # Convert database format to UI format
             result = []

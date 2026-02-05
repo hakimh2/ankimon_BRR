@@ -3,6 +3,7 @@ import uuid
 import json
 import os
 from typing import Optional
+from aqt import mw
 
 from ..poke_engine.objects import Pokemon
 from ..resources import pkmnimgfolder, mainpokemon_path, mypokemon_path
@@ -393,8 +394,7 @@ class PokemonObject:
 
         If the Pokémon is already holding an item, it is removed first.
         """
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         
         # If the pokemon already holds an object, we remove it to make room for the new one.
         if self.held_item:
@@ -422,8 +422,7 @@ class PokemonObject:
         if self.held_item is None:
             return
 
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
 
         give_item(self.held_item)  # We put the item back in the item bag
         self.held_item = None

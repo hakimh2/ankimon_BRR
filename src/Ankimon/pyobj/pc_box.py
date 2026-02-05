@@ -520,9 +520,7 @@ class PokemonPC(QDialog):
     def load_pokemon_data(self) -> list:
         """Reads Pokémon data from the database."""
         try:
-            from .database_manager import get_db
-            db = get_db()
-            pokemon_list = db.get_all_pokemon()
+            pokemon_list = mw.ankimon_db.get_all_pokemon()
             for i, pokemon in enumerate(pokemon_list):
                 pokemon['original_index'] = i
             return pokemon_list
@@ -753,12 +751,10 @@ class PokemonPC(QDialog):
             - Refreshes the GUI to reflect the change.
             - Logs an info message if the Pokémon is not found in the list.
         """
-        from .database_manager import get_db
-        db = get_db()
-        target_pokemon = db.get_pokemon(pokemon["individual_id"])
+        target_pokemon = mw.ankimon_db.get_pokemon(pokemon["individual_id"])
         if target_pokemon:
             target_pokemon["is_favorite"] = not target_pokemon.get("is_favorite", False)
-            db.save_pokemon(target_pokemon)
+            mw.ankimon_db.save_pokemon(target_pokemon)
             self.refresh_gui()
             return
 
@@ -786,9 +782,7 @@ class PokemonPC(QDialog):
             - Logs and displays an info message using `ShowInfoLogger`.
             - Refreshes the GUI via `self.refresh_gui()`.
         """
-        from .database_manager import get_db
-        db = get_db()
-        items_list = db.get_all_items()
+        items_list = mw.ankimon_db.get_all_items()
         # Filter to holdable items (items without a type, stored in data field)
         items_names = []
         for item in items_list:
@@ -898,10 +892,8 @@ class PokemonPC(QDialog):
                     pokemon_list[i][key] = value
 
         if needs_update:
-            from .database_manager import get_db
-            db = get_db()
             for pokemon in pokemon_list:
-                db.save_pokemon(pokemon)
+                mw.ankimon_db.save_pokemon(pokemon)
 
     def on_window_close(self):
         if self.pokemon_details_layout is not None:

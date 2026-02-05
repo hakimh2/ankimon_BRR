@@ -412,8 +412,7 @@ def save_main_pokemon_progress(
         main_pokemon.xp += exp
         level_cap = 100
     try:
-        from ..pyobj.database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         main_pokemon_data = db.get_main_pokemon()
         if not main_pokemon_data:
             showWarning(translator.translate("missing_mainpokemon_data"))
@@ -530,8 +529,7 @@ def sync_mainpokemon_to_mypokemon(main_pokemon, mainpokemon_path, mypokemon_path
     Update the relevant entry in mypokemon database with the latest values from mainpokemon.
     Uses database instead of JSON files.
     """
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     # Get main pokemon from database
     main_entry = db.get_main_pokemon()

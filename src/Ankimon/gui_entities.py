@@ -297,8 +297,7 @@ class Pokedex_Widget(QWidget):
         self.initUI()
 
     def read_poke_coll(self):
-        from .pyobj.database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         self.captured_pokemon_data = db.get_all_pokemon()
 
     def initUI(self):

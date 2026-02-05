@@ -219,8 +219,7 @@ class EvoWindow(QWidget):
 
     def evolve_pokemon(self, individual_id, prevo_id, prevo_name, evo_id, evo_name, main_pokemon):
         """Evolve a pokemon and save to database."""
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         
         try:
             pokemon = db.get_pokemon(individual_id)
@@ -302,8 +301,7 @@ class EvoWindow(QWidget):
 
     def cancel_evolution(self, individual_id, prevo_name):
         """Cancel evolution and save changes to database."""
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         
         try:
             pokemon_to_update = db.get_pokemon(individual_id)

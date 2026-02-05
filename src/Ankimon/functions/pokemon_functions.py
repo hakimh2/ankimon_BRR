@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime
 
 from aqt.utils import showWarning
+from aqt import mw
 
 from .pokedex_functions import search_pokeapi_db_by_id, search_pokedex, search_pokedex_by_id, get_all_pokemon_moves
 from .battle_functions import calculate_hp
@@ -295,8 +296,7 @@ def save_fossil_pokemon(pokemon_id):
         "tier": "Fossil",
     }
     # Save to database
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     db.save_pokemon(caught_pokemon)
 
 def get_levelup_move_for_pokemon(pokemon_name, level):

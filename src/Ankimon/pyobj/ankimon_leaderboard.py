@@ -122,8 +122,7 @@ def get_unique_pokemon():
         return
 
     try:
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         pokemon_data = db.get_all_pokemon()
         pokemon_info = {}  # Define as a dictionary
         id_list = []  # Initialize id_list as an empty list
@@ -150,8 +149,7 @@ def get_unique_pokemon():
 
 def get_total_pokemon():
     try:
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         pokemon_data = db.get_all_pokemon()
         total_pokemon = len(pokemon_data)
         return total_pokemon
@@ -161,8 +159,7 @@ def get_total_pokemon():
 
 def get_shinies():
     try:
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         pokemon_data = db.get_all_pokemon()
         shinies = 0
         for pokemon in pokemon_data:

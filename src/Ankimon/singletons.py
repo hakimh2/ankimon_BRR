@@ -76,6 +76,7 @@ mw.settings_ankimon = settings_window
 mw.logger = logger
 mw.translator = translator
 mw.settings_obj = settings_obj
+mw.ankimon_db = ankimon_db  # Database singleton for global access
 
 main_pokemon, mainpokemon_empty = update_main_pokemon()
 

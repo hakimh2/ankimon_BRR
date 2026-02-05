@@ -50,8 +50,7 @@ def create_monthly_challenge_pokemon(pokemon_data, make_shiny=False):
 def add_pokemon_to_collection(new_pokemon, refresh_callback=None, parent_window=None):
     """Adds a Pokémon to the user's collection in the database."""
     try:
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         db.save_pokemon(new_pokemon)
         if refresh_callback:
             refresh_callback()
@@ -101,8 +100,7 @@ def check_and_award_monthly_pokemon(logger):
             logger.log("warning", f"Monthly challenge for {current_month_str} is missing 'individual_id' in 'pokemon' data.")
             return
 
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         my_pokemon = db.get_all_pokemon()
 
         if any(p.get("individual_id") == challenge_individual_id for p in my_pokemon):
@@ -168,8 +166,7 @@ class PokemonTrade:
     def load_pokemon_data(self):
         """Load main pokemon data from database."""
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             main_pokemon = db.get_main_pokemon()
             return [main_pokemon] if main_pokemon else []
         except Exception as e:
@@ -600,8 +597,7 @@ class PokemonTrade:
     def replace_pokemon(self, new_pokemon):
         """Replace the traded pokemon with the new one in the database."""
         try:
-            from .database_manager import get_db
-            db = get_db()
+            db = mw.ankimon_db
             
             # Delete the old pokemon
             db.delete_pokemon(self.individual_id)

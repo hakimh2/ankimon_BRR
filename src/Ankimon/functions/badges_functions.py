@@ -2,12 +2,12 @@ import json
 from typing import List
 
 from ..resources import badgebag_path
+from aqt import mw
 
 
 def get_achieved_badges() -> List[int]:
     """Gets list of achieved badge IDs from the database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     if db.is_migrated():
         badges = db.get_all_badges()
@@ -37,8 +37,7 @@ def check_for_badge(achievements, rec_badge_num):
 
 def save_badges(badges_collection: List[int]):
     """Saves badges collection to the database."""
-    from ..pyobj.database_manager import get_db
-    db = get_db()
+    db = mw.ankimon_db
     
     # Clear existing badges and save new ones
     # Each badge is saved with its ID as the key

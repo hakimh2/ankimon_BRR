@@ -3,6 +3,7 @@ import random
 import json
 import uuid
 
+from aqt import mw
 from aqt.utils import showWarning
 from aqt.qt import (
     QFont,
@@ -146,8 +147,7 @@ class StarterWindow(QWidget):
         )
 
         # Load existing Pokémon data from database
-        from .database_manager import get_db
-        db = get_db()
+        db = mw.ankimon_db
         caught_pokemon_data = db.get_all_pokemon()
 
         # Append the caught Pokémon's data to the list
