@@ -434,15 +434,21 @@ class AnkimonDB:
             except Exception as e:
                 self._log("error", f"Failed to migrate items.json: {e}")
 
-        # Migrate badges.json
+        # Migrate badges.json - handles both [1, 2, 3] and [{"id": 1}, ...] formats
         if badges_path.is_file():
             try:
                 with open(badges_path, 'r', encoding='utf-8') as f:
                     badges_list = json.load(f)
                 for badge in badges_list:
-                    badge_id = str(badge.get("id", badge.get("badge_id", "")))
+                    # Handle both integer and dict formats
+                    if isinstance(badge, int):
+                        badge_id = str(badge)
+                        badge_data = {"id": badge}
+                    else:
+                        badge_id = str(badge.get("id", badge.get("badge_id", "")))
+                        badge_data = badge
                     if badge_id:
-                        self.save_badge(badge_id, badge)
+                        self.save_badge(badge_id, badge_data)
                         stats["badges"] += 1
                 self._log("info", f"Migrated {stats['badges']} badges from badges.json")
             except Exception as e:
