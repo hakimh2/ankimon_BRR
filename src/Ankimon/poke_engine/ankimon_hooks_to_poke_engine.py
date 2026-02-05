@@ -307,7 +307,7 @@ def simulate_battle_with_poke_engine(
         # inflict a certain status (like sleep or paralyze), etc.
 
         battle_effects = []
-        for instr in chosen_outcome.instructions:
+        for instr in instrs:
             battle_effects.append(list(instr))  # Convert tuples to lists
 
         battle_info = {
