@@ -7,6 +7,7 @@ The program is not usable until migration completes.
 
 import json
 import shutil
+import traceback
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QProgressBar, QTextEdit, QApplication, QMessageBox
@@ -15,6 +16,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from pathlib import Path
 from typing import Dict, Any
+
+from ..utils import show_warning_with_traceback
 
 
 class MigrationDialog(QDialog):
@@ -196,9 +199,15 @@ class MigrationDialog(QDialog):
                 for badge in badges_list:
                     if self.cancelled:
                         break
-                    badge_id = str(badge.get("id", badge.get("badge_id", "")))
+                    # Handle both integer and dict formats
+                    if isinstance(badge, int):
+                        badge_id = str(badge)
+                        badge_data = {"id": badge}
+                    else:
+                        badge_id = str(badge.get("id", badge.get("badge_id", "")))
+                        badge_data = badge
                     if badge_id:
-                        self.db.save_badge(badge_id, badge)
+                        self.db.save_badge(badge_id, badge_data)
                         stats["badges"] += 1
                 if not self.cancelled:
                     self._update_progress(98, f"✓ Migrated {stats['badges']} badges")
@@ -232,10 +241,24 @@ class MigrationDialog(QDialog):
             
         except Exception as e:
             self.migration_running = False
-            self._update_progress(0, f"❌ Error: {e}")
+            error_msg = f"❌ Error: {e}"
+            self._update_progress(0, error_msg)
             self.log_area.append("\nMigration failed. Your original files are preserved.")
+            self.log_area.append(f"\n--- Full Error Traceback ---\n{traceback.format_exc()}")
             self.start_button.setEnabled(True)
             self.start_button.setText("🔄 Retry")
+            # Show detailed error dialog
+            try:
+                show_warning_with_traceback(
+                    exception=e,
+                    message="Migration failed! Please report this error:"
+                )
+            except:
+                # Fallback if show_warning_with_traceback isn't available
+                QMessageBox.critical(
+                    self, "Migration Error",
+                    f"Migration failed:\n\n{e}\n\nPlease report this error."
+                )
     
     def _finish_cancelled(self):
         """Handle cancelled migration."""
@@ -245,8 +268,9 @@ class MigrationDialog(QDialog):
         self.start_button.setText("🔄 Retry")
     
     def _cleanup_json_files(self):
-        """Move old JSON files to backup folder after successful migration."""
-        backup_dir = self.mypokemon_path.parent / "pre_migration_backup"
+        \"\"\"Move old JSON files to json/ subfolder after successful migration.\"\"\"
+        # Move to user_files/json/ - ensures path change breaks any remaining JSON usage
+        backup_dir = self.mypokemon_path.parent / \"json\"
         backup_dir.mkdir(exist_ok=True)
         
         files_to_backup = [
