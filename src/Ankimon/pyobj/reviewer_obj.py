@@ -63,16 +63,12 @@ class Reviewer_Manager:
             reviewer.web.eval("if(window.__ankimonHud) window.__ankimonHud.clear();")
             return
 
-        # Check if the enemy pokemon is in the user's collection
+        # Check if the enemy pokemon is in the user's collection (optimized query)
         enemy_name_lower = self.enemy_pokemon.name.lower()
         is_pokemon_owned = False
         try:
             db = mw.ankimon_db
-            my_pokemon_list = db.get_all_pokemon()
-            for p in my_pokemon_list:
-                if p.get('name', '').lower() == enemy_name_lower:
-                    is_pokemon_owned = True
-                    break
+            is_pokemon_owned = db.has_pokemon_by_name(enemy_name_lower)
         except Exception:
             pass
 
