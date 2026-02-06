@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Optional
 
 from ..functions.pokedex_functions import search_pokedex, search_pokedex_by_id
@@ -42,7 +43,7 @@ MAIN_POKEMON_DEFAULT = {
     "base_experience": 101,
     "hp": 100,
     "growth_rate": "medium-fast",
-    "individual_id": "00000000-0000-0000-0000-000000000000",  # Placeholder UUID
+    "individual_id": "00000000-0000-0000-0000-000000000" + str(uuid.uuid4())[-3:],  # Last 3 digits random
     "tier": "Normal",
     "shiny": False,
     "captured_date": "2000-01-01 00:00:00"
