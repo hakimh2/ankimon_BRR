@@ -271,7 +271,7 @@ class TestWindow(QWidget):
         experience = int(find_experience_for_level(self.main_pokemon.growth_rate, self.main_pokemon.level, self.settings_obj.get("misc.remove_level_cap")))
 
         mainxp_bar_width = 5
-        mainpokemon_xp_value = int((self.main_pokemon.xp / experience) * 148)
+        mainpokemon_xp_value = int(((self.main_pokemon.xp or 0) / experience) * 148)
 
         # Paint XP Bar
         painter.setBrush(QColor(58, 155, 220))
@@ -443,7 +443,7 @@ class TestWindow(QWidget):
         experience = int(find_experience_for_level(self.main_pokemon.growth_rate, self.main_pokemon.level, self.settings_obj.get("misc.remove_level_cap")))
 
         mainxp_bar_width = 5
-        mainpokemon_xp_value = int((self.main_pokemon.xp / experience) * 148)
+        mainpokemon_xp_value = int(((self.main_pokemon.xp or 0) / experience) * 148)
 
         # Paint XP Bar
         painter.setBrush(QColor(58, 155, 220))
