@@ -300,12 +300,16 @@ def find_details_move(move_name: str):
             if move:
                 return move
             move_name = move_name.replace(" ", "")
-            try:
-                move = moves_data.get(move_name.lower())
+            move = moves_data.get(move_name.lower())
+            if move:
                 return move
-            except:
-                # logger.log_and_showinfo("info",f"Can't find the attack {move_name} in the database.")
+            move_name = move_name.replace("-", "")
+            move = moves_data.get(move_name.lower())
+            if move:
+                return move
+            else:
                 move = moves_data.get("tackle")
+                showWarning(f"Move '{move_name}' not found. Returning default move 'tackle'.")
                 return move
     except Exception as e:
         show_warning_with_traceback(
