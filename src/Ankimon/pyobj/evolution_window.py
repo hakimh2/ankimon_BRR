@@ -314,6 +314,9 @@ class EvoWindow(QWidget):
         check = check_for_badge(self.achievements, 16)
         if check is False:
             receive_badge(16, self.achievements)
+            
+        from ..singletons import pokemon_pc
+        pokemon_pc.refresh_pokemon_grid()
 
     def cancel_evolution(self, individual_id, prevo_name):
         try:
