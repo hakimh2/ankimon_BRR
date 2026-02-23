@@ -741,7 +741,7 @@ class TestWindow(QWidget):
         catch_button.setFont(QFont("Arial", 12))  # Adjust the font size and style as needed
         catch_button.setStyleSheet("background-color: rgb(44,44,44);")
         #catch_button.setFixedWidth(150)
-        qconnect(catch_button.clicked, lambda: self._reset_window_title(mw.catchpokemon()))
+        qconnect(catch_button.clicked, lambda: self._reset_window_title(mw.catchpokemon))
 
         kill_button = QPushButton(self.translator.translate("defeat_button"))
         kill_button.setFixedSize(175, 30)  # Adjust the size as needed
