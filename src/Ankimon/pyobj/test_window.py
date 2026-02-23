@@ -124,7 +124,7 @@ class TestWindow(QWidget):
         self.setLayout(layout)
 
         # Set window
-        self.setWindowTitle('Ankimon Window')
+        self._reset_window_title()
         self.setWindowIcon(QIcon(str(icon_path)))  # Add a Pokeball icon
 
         # Display the Pokémon image
@@ -741,14 +741,14 @@ class TestWindow(QWidget):
         catch_button.setFont(QFont("Arial", 12))  # Adjust the font size and style as needed
         catch_button.setStyleSheet("background-color: rgb(44,44,44);")
         #catch_button.setFixedWidth(150)
-        qconnect(catch_button.clicked, lambda: mw.catchpokemon())
+        qconnect(catch_button.clicked, lambda: self._reset_window_title(mw.catchpokemon()))
 
         kill_button = QPushButton(self.translator.translate("defeat_button"))
         kill_button.setFixedSize(175, 30)  # Adjust the size as needed
         kill_button.setFont(QFont("Arial", 12))  # Adjust the font size and style as needed
         kill_button.setStyleSheet("background-color: rgb(44,44,44);")
         #kill_button.setFixedWidth(150)
-        qconnect(kill_button.clicked,  lambda: mw.defeatpokemon())
+        qconnect(kill_button.clicked, lambda: self._reset_window_title(mw.defeatpokemon))
 
         # Set the merged image as the pixmap for the QLabel
         pkmnimage_label.setPixmap(pkmnpixmap_bckg)
@@ -863,3 +863,8 @@ class TestWindow(QWidget):
 
     def closeEvent(self,event):
         self.pkmn_window = False
+
+    def _reset_window_title(self, callback_func=None):
+        self.setWindowTitle('Ankimon Window')
+        if callback_func:
+            callback_func()
