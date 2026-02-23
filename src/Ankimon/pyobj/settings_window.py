@@ -356,8 +356,27 @@ class SettingsWindow(QMainWindow):
             
             if isinstance(widget, QLineEdit):
                 new_text = widget.text()
-                # Attempt to cast back to original type (int or str)
-                if isinstance(original_value, int):
+                
+                # Special handling for battle.cards_per_round - allow string format like "1-3"
+                if key == "battle.cards_per_round":
+                    # If it's a valid range format or integer, keep it as string/int
+                    if "-" in new_text and len(new_text.split("-")) == 2:
+                        try:
+                            # Validate the range format
+                            parts = new_text.split("-")
+                            int(parts[0])  # Check if first part is valid int
+                            int(parts[1])  # Check if second part is valid int
+                            self.config[key] = new_text  # Save as string
+                        except ValueError:
+                            self.config[key] = original_value  # Invalid format, revert
+                    else:
+                        # Try to save as integer for single values
+                        try:
+                            self.config[key] = int(new_text)
+                        except ValueError:
+                            self.config[key] = original_value
+                # Standard handling for other settings
+                elif isinstance(original_value, int):
                     try:
                         self.config[key] = int(new_text)
                     except ValueError:

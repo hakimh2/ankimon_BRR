@@ -16,7 +16,7 @@ from ..resources import user_path
 
 DEFAULT_CONFIG = {
     "battle.automatic_battle": 0,
-    "battle.cards_per_round": 2,
+    "battle.cards_per_round": "2",
     "battle.daily_average": 100,
     "battle.card_max_time": 60,
     "controls.pokemon_buttons": True,
