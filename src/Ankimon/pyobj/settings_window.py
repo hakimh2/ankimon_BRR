@@ -360,12 +360,10 @@ class SettingsWindow(QMainWindow):
                 # Special handling for battle.cards_per_round - allow string format like "1-3"
                 if key == "battle.cards_per_round":
                     # If it's a valid range format or integer, keep it as string/int
-                    if "-" in new_text and len(new_text.split("-")) == 2:
+                    if "-" in new_text:
                         try:
-                            # Validate the range format
-                            parts = new_text.split("-")
-                            int(parts[0])  # Check if first part is valid int
-                            int(parts[1])  # Check if second part is valid int
+                            # Validate that the string is in 'num-num' format
+                            _ = map(int, new_text.split("-"))
                             self.config[key] = new_text  # Save as string
                         except ValueError:
                             self.config[key] = original_value  # Invalid format, revert
