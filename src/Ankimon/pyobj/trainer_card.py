@@ -35,8 +35,8 @@ class TrainerCard:
         trainer_name,
         trainer_id,
         level=1,
-        xp=0,
         achievements=None,
+        team=None,
         image_path=trainer_sprites_path,
         league="unranked",
     ):
@@ -47,11 +47,12 @@ class TrainerCard:
         self.favorite_pokemon = main_pokemon.name  # Trainer's favorite Pokémon
         self.trainer_id = trainer_id  # Unique ID for the trainer
         self.level = int(settings_obj.get("trainer.level"))  # Trainer's level
-        self.xp = xp  # Experience points
+        self.xp = int(settings_obj.get("trainer.xp"))  # Experience points
+        self.total_xp = int(settings_obj.get("trainer.total_xp", 0)) # Total Experience points
         self.achievements = (
             achievements if achievements else []
         )  # List of achievements (if any)
-        self.team = self.get_team()  # Team as a simple string
+        self.team = team if team is not None else self.get_team()  # Team as a simple string
         highest_level = self.get_highest_level_pokemon()
         self.highest_level = highest_level  # Highest level Pokémon
         highest_pokemon_level = int(self.highest_pokemon_level())
@@ -185,6 +186,7 @@ class TrainerCard:
             "trainer_id": self.trainer_id,
             "level": self.level,
             "xp": self.xp,
+            "total_xp": self.total_xp,
             "badges": self.badge_count(),
             "favorite_pokemon": self.main_pokemon.name,
             "highest_level_pokemon": self.get_highest_level_pokemon(),
@@ -209,13 +211,25 @@ class TrainerCard:
         xp_gained = POKEMON_TIERS.get(tier.lower(), 0)
         if allow_to_choose_move is True:
             xp_gained = xp_gained * 0.5
-        self.xp += xp_gained
+        self.settings_obj.set(
+            "trainer.xp", int(self.settings_obj.get("trainer.xp") + xp_gained)
+        )
+        self.settings_obj.set(
+            "trainer.total_xp", int(self.settings_obj.get("trainer.total_xp", 0) + xp_gained)
+        )
+        self.xp = self.settings_obj.get("trainer.xp")
+        self.total_xp = self.settings_obj.get("trainer.total_xp")
         print(f"Gained {xp_gained} XP from defeating a {tier} Pokémon!")
         self.check_level_up()
 
     def check_level_up(self):
         """Update level based on XP."""
-        while self.xp >= self.xp_for_next_level():
+        xp_needed = self.xp_for_next_level()
+        while self.xp >= xp_needed:
+            self.xp -= xp_needed
             self.level += 1
             self.settings_obj.set("trainer.level", self.level)
+            self.settings_obj.set("trainer.xp", self.xp)
             self.on_level_up()
+            # Recalculate for next iteration (in case multiple levels gained)
+            xp_needed = self.xp_for_next_level()
