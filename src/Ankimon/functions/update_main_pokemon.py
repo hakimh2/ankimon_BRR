@@ -99,7 +99,7 @@ def save_main_pokemon(main_pokemon: PokemonObject):
     with open(mainpokemon_path, "w", encoding="utf-8") as f:
         json.dump([data], f, indent=4)
 
-def update_main_pokemon_from_dict(pokemon_data: dict) -> bool:
+def update_main_pokemon_from_dict(pokemon_data: dict) -> tuple:
     """
     Update the main Pokémon JSON file with the provided data.
 
