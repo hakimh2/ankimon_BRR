@@ -434,16 +434,17 @@ def save_main_pokemon_progress(
         if settings_obj.get('gui.pop_up_dialog_message_on_defeat') is True:
             logger.log_and_showinfo("info",f"{msg}")
         main_pokemon.xp = int(max(0, int(main_pokemon.xp) - int(experience)))
+        
+        # Request to open the pokemon evo window
         evo_id = check_evolution_for_pokemon(main_pokemon.individual_id, main_pokemon.id, main_pokemon.level, evo_window, main_pokemon.everstone)
         if evo_id is not None:
-            msg += translator.translate("pokemon_about_to_evolve", main_pokemon_name=main_pokemon.name, evo_pokemon_name=return_name_for_id(evo_id).capitalize(), main_pokemon_level=main_pokemon.level)
-            logger.log_and_showinfo("info",f"{msg}")
+            logger.log_and_showinfo(
+                "info",
+                translator.translate("pokemon_about_to_evolve", main_pokemon_name=main_pokemon.name, evo_pokemon_name=return_name_for_id(evo_id).capitalize(), main_pokemon_level=main_pokemon.level)
+            )
             color = "#6A4DAC"
-            try:
-                tooltipWithColour(msg, color)
-            except:
-                pass
-                    #evo_window.ask_pokemon_evo(main_pokemon.name.lower())
+            tooltipWithColour(msg, color)
+
         for mainpkmndata in main_pokemon_data:
             if mainpkmndata["name"] == main_pokemon.name.capitalize():
                 attacks = mainpkmndata["attacks"]
@@ -467,9 +468,6 @@ def save_main_pokemon_progress(
                             for index, attack in enumerate(attacks):
                                 if attack == selected_attack:
                                     index_to_replace = index
-                                    pass
-                                else:
-                                    pass
                             # If the attack is found, replace it with 'new_attack'
                             if index_to_replace is not None:
                                 attacks[index_to_replace] = new_attack
@@ -485,18 +483,14 @@ def save_main_pokemon_progress(
     msg = ""
     msg += translator.translate("mainpokemon_gained_xp", main_pokemon_name=main_pokemon.name, exp=exp, experience_till_next_level=experience, main_pokemon_xp=main_pokemon.xp)
     color = "#a17cf7" #pokemon leveling info color for tooltip
-    try:
-        tooltipWithColour(msg, color)
-    except:
-        pass
+    tooltipWithColour(msg, color)
     if settings_obj.get('gui.pop_up_dialog_message_on_defeat') is True:
         logger.log_and_showinfo("info",f"{msg}")
+    
     # Load existing Pokémon data if it exists
-
     for mainpkmndata in main_pokemon_data:
         mainpkmndata["stats"] = main_pokemon.stats
         mainpkmndata["xp"] = int(main_pokemon.xp)
-        #mainpkmndata["stats"]["xp"] = int(main_pokemon.xp)
         mainpkmndata["level"] = int(main_pokemon.level)
         ev_yield = limit_ev_yield(mainpkmndata["ev"], enemy_pokemon.ev_yield)
         mainpkmndata["ev"]["hp"] += ev_yield["hp"]
@@ -518,72 +512,13 @@ def save_main_pokemon_progress(
             mainpkmndata["is_favorite"] = main_pokemon.is_favorite
     mypkmndata = mainpkmndata
     mainpkmndata = [mainpkmndata]
-    # Save the caught Pokémon's data to a JSON file
+    
+    #Save the caught Pokémon's data to a JSON file
     with open(str(mainpokemon_path), "w") as json_file:
         json.dump(mainpkmndata, json_file, indent=2)
 
-    # Load data from the output JSON file
-    with open(str(mypokemon_path), "r", encoding="utf-8") as output_file:
-        mypokemondata = json.load(output_file)
-
-        # Find and replace the specified Pokémon's data in mypokemondata
-        for index, pokemon_data in enumerate(mypokemondata):
-            if pokemon_data.get("individual_id") == main_pokemon.individual_id:  # Match by individual_id
-                mypokemondata[index] = mypkmndata  # Replace with new data
-                break
-
-        # Save the modified data to the output JSON file
-        with open(str(mypokemon_path), "w") as output_file:
-            json.dump(mypokemondata, output_file, indent=2)
-
-    sync_mainpokemon_to_mypokemon(main_pokemon, mainpokemon_path, mypokemon_path)
-
     return main_pokemon.level
-
-# --- Utility: Sync mainpokemon to mypokemon ---
-def sync_mainpokemon_to_mypokemon(main_pokemon, mainpokemon_path, mypokemon_path):
-    """
-    Update the relevant entry in mypokemon file with the latest values from mainpokemon file.
-    Args:
-        main_pokemon: The main PokemonObject (should have individual_id).
-        mainpokemon_path: Path to mainpokemon.json.
-        mypokemon_path: Path to mypokemon.json.
-    """
-    import json
-    # Load mainpokemon data
-    if not mainpokemon_path.is_file():
-        return
-    with open(mainpokemon_path, "r", encoding="utf-8") as f:
-        main_data = json.load(f)
-    if not main_data:
-        return
-    # Use the first (and only) mainpokemon entry
-    main_entry = main_data[0] if isinstance(main_data, list) else main_data
-    main_id = main_entry.get("individual_id", None)
-    if not main_id:
-        main_id = getattr(main_pokemon, "individual_id", None)
-    if not main_id:
-        return
-    # Load mypokemon data
-    if not mypokemon_path.is_file():
-        return
-    with open(mypokemon_path, "r", encoding="utf-8") as f:
-        my_data = json.load(f)
-    # Find and update the entry with matching individual_id
-    updated = False
-    for idx, entry in enumerate(my_data):
-        if entry.get("individual_id") == main_id:
-            # Update all keys from main_entry (except those you want to preserve in mypokemon)
-            for k, v in main_entry.items():
-                entry[k] = v
-            my_data[idx] = entry
-            updated = True
-            break
-    if updated:
-        with open(mypokemon_path, "w", encoding="utf-8") as f:
-            json.dump(my_data, f, indent=2)
-    return
-
+    
 def kill_pokemon(
         main_pokemon: PokemonObject,
         enemy_pokemon: PokemonObject,
