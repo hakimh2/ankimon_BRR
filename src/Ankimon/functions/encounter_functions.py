@@ -442,8 +442,6 @@ def save_main_pokemon_progress(
                 "info",
                 translator.translate("pokemon_about_to_evolve", main_pokemon_name=main_pokemon.name, evo_pokemon_name=return_name_for_id(evo_id).capitalize(), main_pokemon_level=main_pokemon.level)
             )
-            color = "#6A4DAC"
-            tooltipWithColour(msg, color)
 
         for mainpkmndata in main_pokemon_data:
             if mainpkmndata["name"] == main_pokemon.name.capitalize():
