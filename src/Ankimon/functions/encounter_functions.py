@@ -32,7 +32,7 @@ from ..pyobj.error_handler import show_warning_with_traceback
 from ..functions.trainer_functions import xp_share_gain_exp
 from ..functions.badges_functions import check_for_badge, receive_badge
 from ..functions.drawing_utils import tooltipWithColour
-from ..utils import limit_ev_yield, play_effect_sound, iv_rand_gauss, get_ev_spread
+from ..utils import limit_ev_yield, play_effect_sound, get_ev_spread
 from ..business import calc_experience
 from ..const import gen_ids
 from ..singletons import (
@@ -428,10 +428,9 @@ def save_main_pokemon_progress(
         check = check_for_badge(achievements, 5)
         if check is False:
             achievements = receive_badge(5,achievements)
-        try:
-            tooltipWithColour(msg, color)
-        except:
-            pass
+
+        tooltipWithColour(msg, color)
+
         if settings_obj.get('gui.pop_up_dialog_message_on_defeat') is True:
             logger.log_and_showinfo("info",f"{msg}")
         main_pokemon.xp = int(max(0, int(main_pokemon.xp) - int(experience)))
