@@ -729,8 +729,6 @@ def catch_pokemon(
         if logger is not None:
             show_warning_with_traceback(parent=mw, exception=e, message="Error while catching Pokemon:") # Display a message when the Pokémon is caught
 
-    pokemon_pc.refresh_gui()
-
 def handle_enemy_faint(
         main_pokemon: PokemonObject,
         enemy_pokemon: PokemonObject,
