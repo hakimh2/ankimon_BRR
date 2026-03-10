@@ -607,6 +607,9 @@ def kill_pokemon(
     xp_share_individual_id = settings_obj.get("trainer.xp_share")
     if xp_share_individual_id:
         exp = xp_share_gain_exp(logger, settings_obj, evo_window, main_pokemon.id, exp, xp_share_individual_id)
+    
+    if main_pokemon.held_item == "lucky-egg":
+        exp = int(exp * 1.5)
 
     # Save main Pokémon's progress
     main_pokemon.level = save_main_pokemon_progress(
