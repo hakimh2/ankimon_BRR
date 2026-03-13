@@ -545,7 +545,7 @@ def on_review_card(*args):
                 battle_status=main_pokemon.battle_status,
                 pokemon_encounter=ankimon_tracker_obj.pokemon_encouter,
                 translator=translator,
-                changes=current_battle_info_changes
+                changes=current_battle_info_changes,
             )
 
             # Display the complete message
