@@ -167,6 +167,9 @@ class StarterWindow(QWidget):
 
         self.display_chosen_starter_pokemon(starter_name)
 
+        from ..singletons import pokemon_pc
+        pokemon_pc.refresh_pokemon_grid()
+
         close_anki()
 
     def get_starters_of_gen(self):

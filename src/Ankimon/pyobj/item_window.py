@@ -408,6 +408,9 @@ class ItemWindow(QWidget):
         self.starter_window.display_fossil_pokemon(fossil_id, fossil_poke_name)
         save_fossil_pokemon(fossil_id)
         self.delete_item(item_name)
+        
+        from ..singletons import pokemon_pc
+        pokemon_pc.refresh_pokemon_grid()
 
     def modified_pokeball_chances(self, item_name: str, catch_chance: int):
         # Adjust catch chance based on Pokémon type and Poké Ball
