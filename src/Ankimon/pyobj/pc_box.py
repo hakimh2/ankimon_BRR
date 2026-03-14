@@ -308,6 +308,16 @@ class PokemonPC(QDialog):
         self.setup_details_panel(background_color)
 
     def setup_filters_layout(self, parent_layout):
+        """
+        Build and attach filter/sort controls below the PC grid.
+
+        The method preserves previous control state when rebuilding the GUI,
+        reconnects all filter/sort signals, and appends the resulting layout
+        to ``parent_layout``.
+
+        Args:
+            parent_layout (QLayout): Layout that receives the filter controls.
+        """
         # Bottom part to filter the Pokémon displayed
         filters_layout = QGridLayout()
         # Name filtering
@@ -487,6 +497,15 @@ class PokemonPC(QDialog):
                     pokemon_button.setIconSize(QSize(self.slot_size - 10, self.slot_size - 10))
 
     def navigate_box(self, delta):
+        """
+        Move to a different box relative to the current one.
+
+        Applies active filters to compute the valid page range and then
+        navigates with wrap-around behavior.
+
+        Args:
+            delta (int): Relative box movement (for example ``-1`` or ``+1``).
+        """
         pokemon_list = self.load_pokemon_data()
         pokemon_list = self.filter_pokemon_list(pokemon_list)
         max_idx = max(0, (len(pokemon_list) - 1) // (self.n_rows * self.n_cols))
