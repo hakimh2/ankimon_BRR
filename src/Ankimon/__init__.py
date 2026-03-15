@@ -789,7 +789,6 @@ def _get_cards_per_round() -> int:
     cards_per_round = settings_obj.get("battle.cards_per_round")
     
     if isinstance(cards_per_round, int):
-        logger.log("info", f"_get_cards_per_round: Returning integer value {cards_per_round}")
         return cards_per_round
     
     # If it's a string in "number-number" format, return random value between bounds
@@ -801,8 +800,7 @@ def _get_cards_per_round() -> int:
         except (ValueError, IndexError) as e:
             return 2
     
-    fallback_value = int(cards_per_round) if cards_per_round else 2
-    return fallback_value
+    return 2
 
 if reviewer_buttons is True:
     #// Choosing styling for review other buttons in reviewer bottombar based on chosen style
