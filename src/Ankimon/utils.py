@@ -960,7 +960,7 @@ def substract_item_from_itembag(item: str, quantity: int=1) -> None:
             json.dump(items_list, f, indent=2)
         return
 
-def png_to_base64(path):
+def png_to_base64(path: str) -> str:
     """Convert a PNG file to a base64 data URI for embedding into HTML.
 
     Args:
@@ -974,6 +974,5 @@ def png_to_base64(path):
         return ""
     with open(path, "rb") as f:
         return "data:image/png;base64," + base64.b64encode(f.read()).decode("utf-8")
-
 def close_anki():
     mw.close()
