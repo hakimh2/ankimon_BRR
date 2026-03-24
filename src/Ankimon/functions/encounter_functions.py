@@ -597,7 +597,7 @@ def kill_pokemon(
         trainer_card.gain_xp(enemy_pokemon.tier, settings_obj.get("controls.allow_to_choose_moves"))
 
     # Calculate experience based on whether moves are chosen manually
-    exp = calc_experience(main_pokemon.base_experience, enemy_pokemon.level)
+    exp = calc_experience(enemy_pokemon.base_experience, enemy_pokemon.level)
     if settings_obj.get("controls.allow_to_choose_moves"):
         exp *= 0.5
 
