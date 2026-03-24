@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Dict, List
+from typing import Any
 
 from aqt import gui_hooks, mw
 
@@ -41,7 +41,7 @@ from ..utils import png_to_base64
 #: Mapping of Pokémon type name (lower-case) → hex colour used for card
 #: backgrounds.  Dual-type Pokémon receive a diagonal CSS gradient that
 #: blends both colours.
-TYPE_COLORS: Dict[str, str] = {
+TYPE_COLORS: dict[str, str] = {
     "bug": "#A8B820",
     "dark": "#705848",
     "dragon": "#7038F8",
@@ -152,7 +152,7 @@ _GRID_CSS = """\
 # ---------------------------------------------------------------------------
 
 
-def _bg_style_from_types(types: List[str]) -> str:
+def _bg_style_from_types(types: list[str]) -> str:
     """Return a CSS ``background`` fragment for the given Pokémon types.
 
     * Single type → solid ``background-color``.
@@ -160,7 +160,7 @@ def _bg_style_from_types(types: List[str]) -> str:
     * Empty list → empty string (no inline style needed).
 
     Args:
-        types: List of Pokémon type names (e.g. ``["fire", "flying"]``).
+        types: list[str] (e.g. ``["fire", "flying"]``).
 
     Returns:
         A CSS property string ready to be placed inside a ``style="…"``
@@ -201,11 +201,11 @@ def _build_pokeball_style() -> str:
     )
 
 
-def _build_card_html(pokemon: dict, id_prefix: str) -> str:
+def _build_card_html(pokemon: dict[str, Any], id_prefix: str) -> str:
     """Render a single Pokémon card as an HTML fragment.
 
     Args:
-        pokemon: Dictionary with keys such as ``name``, ``nickname``,
+        pokemon: dict[str, Any] with keys such as ``name``, ``nickname``,
             ``level``, ``gender``, ``current_hp``, ``type``, ``id``,
             and ``shiny``.
         id_prefix: Prefix used when generating the card's DOM ``id``.
@@ -253,7 +253,7 @@ def _build_card_html(pokemon: dict, id_prefix: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def load_pokemon_team() -> List[dict]:
+def load_pokemon_team() -> list[dict[str, Any]]:
     """Load the player's Pokémon team for the overview grid.
 
     Resolution order:
@@ -266,8 +266,8 @@ def load_pokemon_team() -> List[dict]:
     3. On any I/O or parse error, return an empty list (never raises).
 
     Returns:
-        Ordered list of Pokémon dictionaries.  May be empty when no data
-        files exist or parsing fails.
+        Ordered list of Pokémon dictionaries (`list[dict[str, Any]]`).
+        May be empty when no data files exist or parsing fails.
     """
     try:
         if os.path.exists(team_pokemon_path):
@@ -305,12 +305,18 @@ def load_pokemon_team() -> List[dict]:
         # Fallback: return every Pokémon from mypokemon.json.
         with open(mypokemon_path, "r", encoding="utf-8") as fh:
             return json.load(fh)
-    except Exception:
+    except (OSError, json.JSONDecodeError):
+        # Fallback for I/O or parse errors during the final fallback attempt.
+        return []
+    except Exception as e:
+        # Unexpected errors are logged but not allowed to crash Anki's UI.
+        if mw:
+            mw.progress.chrome_logger.log(f"Ankimon Team Overview Error: {e}")
         return []
 
 
 def _build_pokemon_grid(
-    pokemon_list: List[dict],
+    pokemon_list: list[dict[str, Any]],
     id_prefix: str = "pokemon",
     max_items: int = _MAX_TEAM_SIZE,
 ) -> str:
@@ -341,32 +347,30 @@ def _build_pokemon_grid(
 # ---------------------------------------------------------------------------
 
 
-def deck_browser_will_render(deck_browser, content) -> None:
+def deck_browser_will_render(deck_browser: Any, content: Any) -> None:
     """Prepend the team grid to the Deck Browser *stats* area.
 
     Registered with
     :pyobj:`aqt.gui_hooks.deck_browser_will_render_content`.
 
     Args:
-        deck_browser: The :class:`aqt.deckbrowser.DeckBrowser` instance.
-        content: Mutable content object whose ``stats`` attribute is an
-            HTML string rendered below the deck table.
+        deck_browser (aqt.deckbrowser.DeckBrowser): The Deck Browser instance.
+        content (aqt.deckbrowser.DeckBrowserContent): Mutable content object.
     """
     team = load_pokemon_team()
     grid_html = _build_pokemon_grid(team, id_prefix="pokemon")
     content.stats = grid_html + (content.stats or "")
 
 
-def on_overview_will_render_content(overview, content) -> None:
+def on_overview_will_render_content(overview: Any, content: Any) -> None:
     """Prepend the team grid to the Deck Overview *table* area.
 
     Registered with
     :pyobj:`aqt.gui_hooks.overview_will_render_content`.
 
     Args:
-        overview: The :class:`aqt.overview.Overview` instance.
-        content: Mutable content object whose ``table`` attribute is an
-            HTML string rendered inside the overview page.
+        overview (aqt.overview.Overview): The Overview instance.
+        content (aqt.overview.OverviewContent): Mutable content object.
     """
     team = load_pokemon_team()
     grid_html = _build_pokemon_grid(team, id_prefix="pokemon")

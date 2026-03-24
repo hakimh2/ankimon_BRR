@@ -168,7 +168,7 @@ class SettingsWindow(QMainWindow):
             try:
                 with open(descriptions_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            except (json.JSONDecodeError, UnicodeDecodeError, OSError) as e:
                 showWarning(f"Error reading descriptions file: {e}")
         return {}
 
@@ -178,7 +178,7 @@ class SettingsWindow(QMainWindow):
             try:
                 with open(names_file, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            except (json.JSONDecodeError, UnicodeDecodeError, OSError) as e:
                 showWarning(f"Error reading friendly names file: {e}")
         return {}
 
@@ -368,7 +368,7 @@ class SettingsWindow(QMainWindow):
                     except ValueError:
                         self.config[key] = original_value
                 else:
-                    self.config[key] = new_text
+                    self.config[key] = str(new_text)
             elif isinstance(widget, QButtonGroup):
                 self.config[key] = (widget.checkedButton().text() == "Enabled")
 
