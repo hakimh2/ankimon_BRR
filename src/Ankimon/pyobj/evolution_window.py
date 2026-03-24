@@ -365,7 +365,7 @@ class EvoWindow(QWidget):
                             # New MainPkmn instance is needed to update HUD with newly evolved MainPkmn
                             self.reviewer_obj.main_pokemon = main_pokemon_obj
                         else:
-                            self.logger("warning", self.translator.translate("missing_mainpokemon_data"))
+                            self.logger.log_and_showinfo("warning", self.translator.translate("missing_mainpokemon_data"))
 
                     # Update UI as before
                     class Container(object):
