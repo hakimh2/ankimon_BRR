@@ -38,15 +38,20 @@ def test_all_pokemon_learnsets_are_valid():
     """
     pokemon_names = list(LEARNSETS_DATA.keys())
 
-    # We patch json.load to return the pre-loaded dictionary, preventing slow I/O parsing repeatedly.
-    with patch("Ankimon.functions.learnset_retrieval.json.load", return_value=LEARNSETS_DATA):
-        # Iterate over all Pokemon and all generations to ensure no exceptions are raised
-        for pokemon_name in pokemon_names:
-            for gen in range(1, 10):
-                try:
-                    # Level 100 ensures we try to parse as many valid levels as possible
-                    _get_learnset_moves(pokemon_name, 100, generation=gen)
-                except ValueError as e:
-                    pytest.fail(f"ValueError raised for pokemon {pokemon_name} in gen {gen}: {e}")
-                except Exception as e:
-                    pytest.fail(f"Unexpected exception for pokemon {pokemon_name} in gen {gen}: {e}")
+    # We patch json.load using the absolute path to prevent it resolving Ankimon and importing aqt
+    # Or even better, we patch builtins.open but since that was slow with mock_open, we patch json.load directly on the module object
+
+    # Actually, the simplest way is to patch json.load specifically in that module
+    with patch.object(_lr.json, 'load', return_value=LEARNSETS_DATA):
+        # Also need to mock open to return something dummy so json.load isn't passed a real file object
+        with patch("builtins.open"):
+            # Iterate over all Pokemon and all generations to ensure no exceptions are raised
+            for pokemon_name in pokemon_names:
+                for gen in range(1, 10):
+                    try:
+                        # Level 100 ensures we try to parse as many valid levels as possible
+                        _get_learnset_moves(pokemon_name, 100, generation=gen)
+                    except ValueError as e:
+                        pytest.fail(f"ValueError raised for pokemon {pokemon_name} in gen {gen}: {e}")
+                    except Exception as e:
+                        pytest.fail(f"Unexpected exception for pokemon {pokemon_name} in gen {gen}: {e}")
