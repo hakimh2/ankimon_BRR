@@ -541,7 +541,7 @@ def kill_pokemon(
         trainer_card.gain_xp(enemy_pokemon.tier, settings_obj.get("controls.allow_to_choose_moves"))
 
     # Calculate experience based on whether moves are chosen manually
-    exp = calc_experience(main_pokemon.base_experience, enemy_pokemon.level)
+    exp = calc_experience(enemy_pokemon.base_experience, enemy_pokemon.level)
     if settings_obj.get("controls.allow_to_choose_moves"):
         exp *= 0.5
 
@@ -650,6 +650,7 @@ def catch_pokemon(
     if ankimon_tracker_obj.caught > 1:
         if settings_obj.get('gui.pop_up_dialog_message_on_defeat') is True:
             logger.log_and_showinfo("info",translator.translate("already_caught_pokemon")) # Display a message when the Pokémon is caught
+            return
 
     # If we arrive here, this means that ankimon_tracker_obj.caught == 1
     if nickname is not None or not nickname:

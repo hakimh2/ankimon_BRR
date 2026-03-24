@@ -385,6 +385,28 @@ class EvoWindow(QWidget):
             show_warning_with_traceback(parent=mw, exception=e, message=f"Error occured in evolving pokemon")
             self.logger.log(f"{e}")
 
+        try:  # Update Main Pokemon Object and sync with file
+            if main_pokemon is not None and main_pokemon.individual_id == individual_id:
+                # Update the in-memory main_pokemon object with the evolved data                # Call update_main_pokemon to ensure file and object are in sync (this will also save to disk)
+                main_pokemon, _ = update_main_pokemon(main_pokemon)
+                # Update UI as before
+                class Container(object):
+                    pass
+                reviewer = Container()
+                reviewer.web = mw.reviewer.web
+                self.reviewer_obj.update_life_bar(reviewer, 0, 0)
+                if self.test_window.isVisible() is True:
+                    self.test_window.display_first_encounter()
+        except Exception as e:
+            show_warning_with_traceback(parent=mw, exception=e, message=f"Error occured in updating main_pokemon obj")
+        self.display_evo_complete(prevo_id, evo_id)
+        check = check_for_badge(self.achievements, 16)
+        if check is False:
+            receive_badge(16, self.achievements)
+            
+        from ..singletons import pokemon_pc
+        pokemon_pc.refresh_pokemon_grid()
+
     def cancel_evolution(self, individual_id, prevo_name):
         try:
             with open(mypokemon_path, "r+", encoding="utf-8") as f:

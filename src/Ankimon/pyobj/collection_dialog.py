@@ -591,7 +591,7 @@ def PokemonTradeIn(number_code, old_pokemon_name, position):
                 "growth_rate": growth_rate,
         }
         trade_pokemon(f"{old_pokemon_name}", pokemon_trade, position)
-        logger.log_and_showinfo("info",f"You have sucessfully traded your {old_pokemon_name} for {name} ")
+        logger.log_and_showinfo("info",f"You have successfully traded your {old_pokemon_name} for {name} ")
     else:
         showWarning("Please enter a valid Code !")
 
@@ -731,3 +731,6 @@ def MainPokemon(
 
     if test_window.isVisible():
         test_window.display_first_encounter()
+
+    from ..singletons import pokemon_pc
+    pokemon_pc.refresh_pokemon_grid()
