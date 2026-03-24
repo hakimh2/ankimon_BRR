@@ -36,7 +36,6 @@ DEFAULT_CONFIG = {
     "gui.reviewer_text_message_box": True,
     "gui.reviewer_text_message_box_time": 3,
     "gui.show_mainpkmn_in_reviewer": 1,
-    "gui.team_deck_view": True,
     "gui.view_main_front": True,
     "gui.xp_bar_config": True,
     "gui.xp_bar_location": 2,
@@ -126,7 +125,7 @@ class Settings:
                                 f"Ankimon: Warning: Could not convert '{config[key]}' for key '{key}' to int. Keeping as string."
                             )
                             
-            except (OSError, json.JSONDecodeError) as e:
+            except Exception as e:
                 print(
                     f"Ankimon: Error loading config from config.obf: {e}. Falling back to default config."
                 )
@@ -156,7 +155,7 @@ class Settings:
             file_content = warning_message + obfuscated_str
             with open(obfuscated_config_path, "w", encoding="utf-8") as f:
                 f.write(file_content)
-        except OSError as e:
+        except Exception as e:
             print(f"Ankimon: Could not save obfuscated config: {e}")
 
     def get(self, key, default=None):
