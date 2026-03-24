@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Union
 from aqt.qt import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
     QRadioButton, QHBoxLayout, QMainWindow, QScrollArea, QButtonGroup, QMessageBox,
@@ -349,15 +350,35 @@ class SettingsWindow(QMainWindow):
             for widget in self.group_widgets[title]:
                 widget.setVisible(is_expanded)
 
-    def on_save(self):
+    def on_save(self) -> Union[int, str]:
         # Update self.config from the current state of all UI widgets
         for key, widget in self.input_widgets.items():
             original_value = self.original_config.get(key)
             
             if isinstance(widget, QLineEdit):
-                new_text = widget.text()
-                # Attempt to cast back to original type (int or str)
-                if isinstance(original_value, int):
+                new_text = widget.text().strip()
+
+                if key == "battle.cards_per_round":
+                    # Single Value
+                    try:
+                        new_value = int(new_text)
+                        self.config[key] = 1 if new_value == 0 else new_value
+                    # Range Value
+                    except ValueError:
+                        if "-" in new_text:
+                            try:
+                                first_val, second_val = map(int, new_text.split("-", 1))
+                                low = min(first_val, second_val)
+                                high = max(first_val, second_val)
+                                self.config[key] = f"{low}-{high}"
+                            except ValueError:
+                                self.config[key] = 2
+                        else:
+                            # Cannot decode input – fallback
+                            self.config[key] = original_value
+
+                # Standard handling for other settings
+                elif isinstance(original_value, int):
                     try:
                         self.config[key] = int(new_text)
                     except ValueError:
