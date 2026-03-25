@@ -253,7 +253,20 @@ class MigrationDialog(QDialog):
                 with open(self.data_path, 'r', encoding='utf-8') as f:
                     user_data = json.load(f)
                 count = 0
-                for key, value in user_data.items():
+                # Handle both dict and list formats
+                if isinstance(user_data, dict):
+                    items = user_data.items()
+                elif isinstance(user_data, list):
+                    # If list of dicts, merge them; otherwise wrap as indexed entries
+                    merged = {}
+                    for entry in user_data:
+                        if isinstance(entry, dict):
+                            merged.update(entry)
+                    items = merged.items()
+                else:
+                    items = {}
+                    self.log_area.append(f"  ⚠ Unexpected user data format: {type(user_data).__name__}")
+                for key, value in items:
                     self.db.set_user_data(key, value)
                     count += 1
                     stats["userdata"] = count
