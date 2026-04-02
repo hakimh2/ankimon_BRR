@@ -198,7 +198,6 @@ item_window = ItemWindow(  # Create an instance of the MainWindow
     achievements=achievements,
     starter_window=starter_window,
     evo_window=evo_window,
-    settings=settings_obj,
 )
 
 pokemon_pc = PokemonPC(

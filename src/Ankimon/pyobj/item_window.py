@@ -58,7 +58,6 @@ class ItemWindow(QWidget):
             achievements: dict[str, bool],
             starter_window: StarterWindow,
             evo_window: EvoWindow,
-            settings: Any
             ):
         super().__init__()
         self.logger: ShowInfoLogger = logger
@@ -68,7 +67,6 @@ class ItemWindow(QWidget):
         self.achievements: dict[str, bool] = achievements
         self.starter_window: StarterWindow = starter_window
         self.evo_window: EvoWindow = evo_window
-        self.settings = settings
         self.initUI()
 
     def initUI(self):
@@ -459,7 +457,7 @@ class ItemWindow(QWidget):
         if self.main_pokemon.hp > (self.main_pokemon.max_hp):
             self.main_pokemon.hp = self.main_pokemon.max_hp
         self.delete_item(item_name)
-        play_effect_sound(self.settings, "HpHeal")
+        play_effect_sound(self.settings_obj, "HpHeal")
         self.logger.log_and_showinfo("info", f"{prevo_name} was healed for {heal_points}")
 
     def Check_Evo_Item(self, individual_id: str, prevo_id: str, item_name: str):
