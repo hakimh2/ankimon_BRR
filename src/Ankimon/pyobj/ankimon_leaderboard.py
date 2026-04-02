@@ -77,7 +77,7 @@ def sync_data_to_leaderboard(data):
             api_key = mw.ankimon_db.get_user_data("api_key")
 
             # Validate credentials
-            if not username or not api_key:
+            if (not username or not api_key) and mw.ankimon_db.is_migrated():
                 showInfo("Error: Missing credentials for Ankimon leaderboard. Please set up leaderboard from Ankimon menu or turn off in Settings.")
                 return
 
