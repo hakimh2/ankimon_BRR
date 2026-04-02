@@ -57,7 +57,7 @@ from .resources import (
     mypokemon_path,
     mainpokemon_path,
     itembag_path,
-    sound_list_path,
+    sound_list_path
 )
 from .menu_buttons import create_menu_actions
 from .hooks import setupHooks
@@ -227,7 +227,6 @@ def on_webview_will_set_content(web_content: WebContent, context) -> None:
     web_content.js.append(
         f"/_addons/{ankimon_package}/user_files/web/ankimon_hud_portal.js"
     )
-
 
 webview_will_set_content.append(on_webview_will_set_content)
 
@@ -495,7 +494,7 @@ def on_review_card(*args):
         ankimon_tracker_obj.cards_battle_round += 1
         ankimon_tracker_obj.cry_counter += 1
         cry_counter = ankimon_tracker_obj.cry_counter
-        total_reviews = ankimon_tracker_obj.total_reviews
+        total_reviews = ankimon_tracker_obj.get_total_reviews()
         reviewer_obj.seconds = 0
         reviewer_obj.myseconds = 0
         ankimon_tracker_obj.general_card_count_for_battle += 1
@@ -819,7 +818,7 @@ create_menu_actions(
     settings_obj,
     addon_dir,
     pokemon_pc,
-    backup_manager,
+    backup_manager
 )
 
 # https://goo.gl/uhAxsg
@@ -875,6 +874,7 @@ def DefeatPokemonHook():
 
 def on_profile_did_open():
     """Initialize services after profile is loaded."""
+
     # Show tip of the day
     try:
         show_tip_of_the_day()

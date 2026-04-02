@@ -22,11 +22,12 @@ from PyQt6.QtWidgets import (
     QScrollArea,
 )
 
-from ..pyobj.InfoLogger import ShowInfoLogger
 from ..pyobj.evolution_window import EvoWindow
-from ..pyobj.pokemon_obj import PokemonObject
-from ..pyobj.starter_window import StarterWindow
+from ..pyobj.InfoLogger import ShowInfoLogger
 from ..pyobj.pc_box import GiveItemWindow
+from ..pyobj.pokemon_obj import PokemonObject
+from ..pyobj.settings import Settings
+from ..pyobj.starter_window import StarterWindow
 
 from ..business import (
     get_id_and_description_by_item_name
@@ -51,6 +52,7 @@ class ItemWindow(QWidget):
     def __init__(
             self,
             logger: ShowInfoLogger,
+            settings_obj: Settings,
             main_pokemon: PokemonObject,
             enemy_pokemon: PokemonObject,
             achievements: dict[str, bool],
@@ -60,6 +62,7 @@ class ItemWindow(QWidget):
             ):
         super().__init__()
         self.logger: ShowInfoLogger = logger
+        self.settings_obj: Settings = settings_obj
         self.main_pokemon: PokemonObject = main_pokemon
         self.enemy_pokemon: PokemonObject = enemy_pokemon
         self.achievements: dict[str, bool] = achievements

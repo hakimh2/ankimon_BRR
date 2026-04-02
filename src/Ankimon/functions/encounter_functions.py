@@ -52,30 +52,20 @@ from ..singletons import (
 )
 
 
-def modify_percentages(total_reviews, daily_average, player_level):
+def modify_percentages(total_reviews, daily_average, trainer_level):
     """
-    Modify Pokémon encounter percentages based on total reviews, player level, event modifiers, and main Pokémon level.
+    Modify Pokémon encounter percentages based on total reviews, trainer level, and main Pokémon level.
     """
     # Start with the base percentages
-    percentages = {
-        "Baby": 2,
-        "Legendary": 0.5,
-        "Mythical": 0.2,
-        "Normal": 92.3,
-        "Ultra": 5,
-    }
+    percentages = {"Baby": 2, "Legendary": 0.5, "Mythical": 0.2, "Normal": 92.3, "Ultra": 5}
 
     # Adjust percentages based on total reviews relative to the daily average
     review_ratio = total_reviews / daily_average if daily_average > 0 else 0
 
     # Adjust for review progress
     if review_ratio < 0.4:
-        percentages["Normal"] += (
-            percentages.pop("Baby", 0)
-            + percentages.pop("Legendary", 0)
-            + percentages.pop("Mythical", 0)
-            + percentages.pop("Ultra", 0)
-        )
+        percentages["Normal"] += percentages.pop("Baby", 0) + percentages.pop("Legendary", 0) + \
+                                 percentages.pop("Mythical", 0) + percentages.pop("Ultra", 0)
     elif review_ratio < 0.6:
         percentages["Baby"] += 2
         percentages["Normal"] -= 2
@@ -93,27 +83,22 @@ def modify_percentages(total_reviews, daily_average, player_level):
         level_thresholds = {
             "Ultra": 30,  # Example threshold for Ultra Pokémon
             "Legendary": 50,  # Example threshold for Legendary Pokémon
-            "Mythical": 75,  # Example threshold for Mythical Pokémon
+            "Mythical": 75  # Example threshold for Mythical Pokémon
         }
 
         for tier in ["Ultra", "Legendary", "Mythical"]:
             if main_pokemon.level < level_thresholds.get(tier, float("inf")):
-                percentages[tier] = (
-                    0  # Set percentage to 0 if the level requirement isn't met
-                )
+                percentages[tier] = 0  # Set percentage to 0 if the level requirement isn't met
 
     # Example modification based on player level
     if player_level:
-        # Adjustment value based on player level: 0.01 per level
-        # Level 100 -> 1.0 adjustment
-        # Level 200 -> 2.0 adjustment
-        adjustment = player_level * 0.01
-
-        for tier in percentages:
-            if tier == "Normal":
-                percentages[tier] = max(percentages[tier] - adjustment, 0)
-            else:
-                percentages[tier] = percentages.get(tier, 0) + adjustment
+        adjustment = 5  # Adjustment value for the example
+        if player_level > 10:
+            for tier in percentages:
+                if tier == "Normal":
+                    percentages[tier] = max(percentages[tier] - adjustment, 0)
+                else:
+                    percentages[tier] = percentages.get(tier, 0) + adjustment
 
     # Normalize percentages to ensure they sum to 100
     total = sum(percentages.values())
@@ -121,8 +106,6 @@ def modify_percentages(total_reviews, daily_average, player_level):
         percentages[tier] = (percentages[tier] / total) * 100 if total > 0 else 0
     # this function gets called maybe 10 times per battle round, which is concerning.
     # it could be rewritten to run ONLY when the change in review ratio is detected.
-
-    mw.logger.log("info", f"Modified encounter percentages: {percentages}")
     return percentages
 
 
@@ -179,7 +162,7 @@ def choose_random_pkmn_from_tier():
         id (int): Pokedex ID for generated Pokemon
         tier (str): Rarity tier for generated Pokemon (normal/ultra/legendary etc.)
     """
-    total_reviews = ankimon_tracker_obj.total_reviews
+    total_reviews = ankimon_tracker_obj.get_total_reviews()
     trainer_level = trainer_card.level
     try:
         tier = get_tier(total_reviews, trainer_level)
@@ -659,14 +642,15 @@ def kill_pokemon(
     # Handle XP share logic
     xp_share_individual_id = settings_obj.get("trainer.xp_share")
     if xp_share_individual_id:
-        exp = xp_share_gain_exp(
-            logger,
-            settings_obj,
-            evo_window,
-            main_pokemon.id,
-            exp,
-            xp_share_individual_id,
-        )
+        exp = xp_share_gain_exp(logger, settings_obj, evo_window, main_pokemon.id, exp, xp_share_individual_id)
+    
+    msg = ""
+
+    if main_pokemon.held_item == "lucky-egg":
+        exp = int(exp * 1.5)
+        msg += f"{main_pokemon.name}'s Lucky Egg boosts its XP gained!\n"
+
+    logger.log("info", msg)
 
     # Save main Pokémon's progress
     main_pokemon.level = save_main_pokemon_progress(
