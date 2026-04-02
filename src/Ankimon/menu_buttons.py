@@ -111,7 +111,7 @@ def create_menu_actions(
         def show_achievements_window():
             from .pyobj.achievements_dialog import AchievementsDialog
             if not hasattr(mw, "_achievements_dialog") or mw._achievements_dialog is None:
-                mw._achievements_dialog = AchievementsDialog(addon_dir)
+                mw._achievements_dialog = AchievementsDialog(addon_dir, trainer_card)
             mw._achievements_dialog.setWindowModality(Qt.WindowModality.NonModal)
             mw._achievements_dialog.show()
             mw._achievements_dialog.raise_()

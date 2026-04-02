@@ -90,7 +90,11 @@ class TrainerCard:
 
     # Number of badges the trainer has earned
     def badge_count(self):
-        return len(get_achieved_badges())
+        return len(self.badges)
+
+    @property
+    def badges(self):
+        return get_achieved_badges()
 
     def get_highest_level_pokemon(self):
         """Method to find the name of the highest-level Pokémon from the database."""

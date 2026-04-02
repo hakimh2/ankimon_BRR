@@ -845,8 +845,7 @@ class AnkimonDB:
                             badge_id = str(badge.get("id", badge.get("badge_id", "")))
                             # Ensure we have achieved status preserved
                             badge_data = badge
-                            if "achieved" not in badge_data:
-                                badge_data["achieved"] = True
+                            badge_data["achieved"] = True
                                 
                         if badge_id:
                             self.save_badge(badge_id, badge_data)

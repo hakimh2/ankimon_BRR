@@ -233,9 +233,11 @@ class MigrationDialog(QDialog):
                     for badge in badges_list:
                         if self.cancelled: break
                         if isinstance(badge, int):
-                            badge_id = str(badge); badge_data = {"id": badge}
+                            badge_id = str(badge); badge_data = {"id": badge, "achieved": True}
                         else:
-                            badge_id = str(badge.get("id", badge.get("badge_id", ""))); badge_data = badge
+                            badge_id = str(badge.get("id", badge.get("badge_id", "")))
+                            badge_data = badge
+                            badge_data["achieved"] = True
                         if badge_id:
                             self.db.save_badge(badge_id, badge_data)
                             stats["badges"] += 1
