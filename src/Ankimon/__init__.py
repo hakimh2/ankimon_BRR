@@ -384,7 +384,6 @@ aqt.gui_hooks.reviewer_did_answer_card.append(answerCard_after)
 
 # get main pokemon details:
 if database_complete:
-    settings_obj.set("trainer.cash", 2000)
     try:
         (
             mainpokemon_name,
