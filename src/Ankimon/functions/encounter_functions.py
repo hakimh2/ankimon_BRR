@@ -93,10 +93,10 @@ def modify_percentages(total_reviews, daily_average, trainer_level):
             if main_pokemon.level < level_thresholds.get(tier, float("inf")):
                 percentages[tier] = 0  # Set percentage to 0 if the level requirement isn't met
 
-    # Example modification based on player level
-    if player_level:
+    # Example modification based on trainer level
+    if trainer_level:
         adjustment = 5  # Adjustment value for the example
-        if player_level > 10:
+        if trainer_level > 10:
             for tier in percentages:
                 if tier == "Normal":
                     percentages[tier] = max(percentages[tier] - adjustment, 0)
@@ -133,20 +133,20 @@ def get_random_pokemon_in_tier(tier):
     return random_pokemon_id
 
 
-def get_tier(total_reviews, player_level=1, event_modifier=None):
+def get_tier(total_reviews, trainer_level=1, event_modifier=None):
     """_summary_
-    Randomly picks the tier for a new enemy Pokemon to be generated from, based on weighted probabilities based on number of reviews and player level.
+    Randomly picks the tier for a new enemy Pokemon to be generated from, based on weighted probabilities based on number of reviews and trainer level.
 
     Args:
         total_reviews (int): Number of reviews done in that Anki session.
-        player_level (int, optional): Trainer XP level. Defaults to 1.
+        trainer_level (int, optional): Trainer XP level. Defaults to 1.
         event_modifier (?, optional): Unused argument. Defaults to None.
 
     Returns:
         choice[0]: The first choice of TIER picked randomly (by a random.choices function)
     """
     daily_average = int(settings_obj.get("battle.daily_average"))
-    percentages = modify_percentages(total_reviews, daily_average, player_level)
+    percentages = modify_percentages(total_reviews, daily_average, trainer_level)
 
     tiers = list(percentages.keys())
     probabilities = list(percentages.values())
