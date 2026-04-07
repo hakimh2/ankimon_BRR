@@ -150,6 +150,7 @@ def PokemonTradeIn(number_code, old_pokemon):
                 "base_experience": base_experience,
                 "current_hp": calculate_hp(stats["hp"], level, ev, iv),
                 "growth_rate": growth_rate,
+                "individual_id": str(uuid.uuid4()),
         }
         trade_pokemon(old_pokemon, new_pokemon)
         logger.log_and_showinfo("info",f"You have successfully traded your {old_pokemon["name"]} for {name} ")

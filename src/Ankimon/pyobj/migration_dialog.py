@@ -291,7 +291,7 @@ class MigrationDialog(QDialog):
                     
                     if isinstance(rate_data, dict) and rate_data.get("rate_this"):
                         self.db.set_user_data("rate_this", "true")
-                        self._log_area.append("  Migrated rate_this.json")
+                        self.log_area.append("  Migrated rate_this.json")
                 except:
                     pass
 

@@ -158,14 +158,25 @@ class Settings:
 
         obfuscated_config_path = user_path / "config.obf"
         sync_handler = AnkimonDataSync()  # Re-use the obfuscation logic
-        try:
-            obfuscated_str = sync_handler._obfuscate_data(config)
-            warning_message = "WARNING: This file contains important user data. Do not delete or modify this file. Deleting or modifying this file can lead to data loss in the Ankimon addon.\n---"
-            file_content = warning_message + obfuscated_str
-            with open(obfuscated_config_path, "w", encoding="utf-8") as f:
-                f.write(file_content)
-        except Exception as e:
-            print(f"Ankimon: Could not save obfuscated config: {e}")
+
+        if obfuscated_config_path.is_file():
+            try:
+                obfuscated_str = sync_handler._obfuscate_data(config)
+                warning_message = "WARNING: This file contains important user data. Do not delete or modify this file. Deleting or modifying this file can lead to data loss in the Ankimon addon.\n---"
+                file_content = warning_message + obfuscated_str
+                with open(obfuscated_config_path, "w", encoding="utf-8") as f:
+                    f.write(file_content)
+            except Exception as e:
+                print(f"Ankimon: Could not save obfuscated config: {e}")
+        else:
+            # Check if database has config
+            if hasattr(mw, 'ankimon_db') and mw.ankimon_db is not None:
+                try:
+                    mw.ankimon_db.save_all_config(config)
+                    print("Ankimon: Saved config to database")
+                except Exception as e:
+                    print(f"Ankimon: Failed to save config to database: {e}")
+
 
     def get(self, key, default=None):
         return self.config.get(key, default)
