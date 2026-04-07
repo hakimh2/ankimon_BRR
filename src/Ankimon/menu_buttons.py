@@ -1,6 +1,6 @@
 from typing import Callable
 from pathlib import Path
-from typing import Union
+
 
 from aqt.utils import *
 from aqt.qt import *
@@ -55,7 +55,6 @@ if debug is True:
 def create_menu_actions(
     database_complete: bool,
     online_connectivity: bool,
-    pokecollection_win: Union[PokemonCollectionDialog, None],
     item_window: ItemWindow,
     test_window: TestWindow,
     achievement_bag: AchievementWindow,

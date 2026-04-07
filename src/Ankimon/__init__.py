@@ -789,7 +789,6 @@ count_items_and_rewrite()
 create_menu_actions(
     database_complete,
     online_connectivity,
-    None,  # pokecollection_win,
     item_window,
     test_window,
     achievement_bag,
