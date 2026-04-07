@@ -29,3 +29,4 @@ src/Ankimon/updateinfos.md
 cycle_keys.py
 src/Ankimon/user_files/download_complete.flag
 src/Ankimon/user_files/ankimon.db
+src/Ankimon/user_files/json/*
