@@ -177,8 +177,6 @@ def MainPokemon(
 ):
     from ..functions.migration import migrate_starter_individual_id
 
-    migrate_starter_individual_id()
-    migrate_starter_individual_id()
     db = mw.ankimon_db
     
     # --- Save the existing mainpokemon to mypokemon before replacing ---
