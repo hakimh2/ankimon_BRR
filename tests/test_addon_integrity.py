@@ -71,6 +71,12 @@ def test_ankimon_initialization(qapp):
             "pypresence",
             "Ankimon.poke_engine.data.scripts",
             "Ankimon.poke_engine.data.mods",
+            "Ankimon.gui_classes.backup_manager_dialog",
+            "Ankimon.gui_classes.overview_team",
+            "Ankimon.gui_classes.pokemon_details",
+            "Ankimon.menu_buttons",
+            "Ankimon.poke_engine.ankimon_hooks_to_poke_engine",
+            "Ankimon.singletons",
         ]
 
         for importer, modname, ispkg in pkgutil.walk_packages(package.__path__, prefix):
