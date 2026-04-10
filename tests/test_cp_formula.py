@@ -33,6 +33,7 @@ from Ankimon.business import (
     calculate_present_power,
     pokemon_go_raw_stats,
     type_compatibility_multiplier,
+    calculate_cp_from_dict,
     _load_type_chart,
 )
 
@@ -158,3 +159,52 @@ class TestCalculatePresentPower:
     def test_none_values(self):
         pp = calculate_present_power(None, None, None)
         assert pp == 0
+
+
+class TestCalculateCPFromDict:
+    """Tests for the dict-based CP entry point used by collection/PC box."""
+
+    BASE = {"hp": 35, "atk": 55, "def": 40, "spa": 50, "spd": 50, "spe": 90}
+
+    def test_with_base_stats_key(self):
+        pokemon = {
+            "base_stats": self.BASE,
+            "stats": {k: v * 3 for k, v in self.BASE.items()},  # inflated
+            "level": 50,
+            "iv": {"hp": 15, "atk": 15, "def": 15, "spa": 15, "spd": 15, "spe": 15},
+            "ev": {},
+        }
+        cp = calculate_cp_from_dict(pokemon)
+        # Should use base_stats, not the inflated stats
+        expected = calculate_pokemon_go_cp(
+            *pokemon_go_raw_stats(self.BASE, pokemon["iv"], {}), 50
+        )
+        assert cp == expected
+
+    def test_falls_back_to_stats_key(self):
+        pokemon = {
+            "stats": self.BASE,
+            "level": 25,
+            "iv": {"hp": 0, "atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0},
+            "ev": {},
+        }
+        cp = calculate_cp_from_dict(pokemon)
+        expected = calculate_pokemon_go_cp(
+            *pokemon_go_raw_stats(self.BASE, pokemon["iv"], {}), 25
+        )
+        assert cp == expected
+
+    def test_missing_iv_ev_default_to_empty(self):
+        pokemon = {"base_stats": self.BASE, "level": 10}
+        cp = calculate_cp_from_dict(pokemon)
+        assert cp >= 10  # minimum clamp
+
+    def test_none_iv_ev_coerced(self):
+        pokemon = {"base_stats": self.BASE, "level": 10, "iv": None, "ev": None}
+        cp = calculate_cp_from_dict(pokemon)
+        assert cp >= 10
+
+    def test_empty_stats_returns_minimum(self):
+        pokemon = {"stats": {}, "level": 1}
+        cp = calculate_cp_from_dict(pokemon)
+        assert cp == 10  # minimum clamp with all defaults
