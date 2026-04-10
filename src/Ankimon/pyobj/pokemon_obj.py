@@ -133,6 +133,23 @@ class PokemonObject:
     def stats(self, value):
         raise AttributeError("Setting the value of the stats of a Pokemon is forbidden as they are automatically calculated using their base stats. You can instead set the base_stats of the Pokemon.")
 
+    @property
+    def cp(self) -> int:
+        """Combat Power — Pokemon GO style formula.
+
+        ``CP = floor(Attack × √Defense × √Stamina × CPM² / 10)``
+
+        Uses raw stats (base + IV + EV/4) so CPM is the sole level
+        multiplier.  See :func:`business.calculate_pokemon_go_cp`.
+        """
+        # Local import to avoid a circular dependency with ``business``.
+        from ..business import calculate_pokemon_go_cp, pokemon_go_raw_stats
+
+        attack, defense, stamina = pokemon_go_raw_stats(
+            self.base_stats, self.iv, self.ev
+        )
+        return calculate_pokemon_go_cp(attack, defense, stamina, self.level)
+
     @classmethod
     def get_nature_stat_mult(cls, stat_name: str, nature: str) -> float:
         if stat_name == "atk":
@@ -173,6 +190,8 @@ class PokemonObject:
             "type": self.type,
             "base_stats": self.base_stats,
             "stats": self.stats,  # Calculated stats
+            "cp": self.cp,
+            "nature": self.nature,
             "ev": self.ev,
             "iv": self.iv,
             "attacks": self.attacks,

@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
     QSizePolicy,
 )
 
+from ..business import calculate_pokemon_go_cp, pokemon_go_raw_stats
 from ..pyobj.attack_dialog import AttackDialog
 from ..pyobj.pokemon_trade import PokemonTrade
 from ..pyobj.error_handler import show_warning_with_traceback
@@ -97,6 +98,7 @@ def PokemonCollectionDetails(
     initial_tab_index: int = 0,
     tab_changed_callback=None,
     nature: str = "serious",
+    base_stats: dict = None,
 ):
     # Create a layout for the details panel
     try:
@@ -221,10 +223,16 @@ def PokemonCollectionDetails(
         else:
             gender_symbol = ""
 
+        _cp_stats = base_stats if base_stats is not None else detail_stats
+        _attack, _defense, _stamina = pokemon_go_raw_stats(_cp_stats, iv, ev)
+        cp_value = calculate_pokemon_go_cp(_attack, _defense, _stamina, level)
+        cp_txt = f" CP: {cp_value}"
+
         name_label = QLabel(f"{capitalized_name} - {gender_symbol}")
         name_label.setFont(namefont)
         description_label = QLabel(description_txt)
         level_label = QLabel(lvl)
+        cp_label = QLabel(cp_txt)
         ability_label = QLabel(ability_txt)
         attacks_label = QLabel(attacks_txt)
         pokemon_defeated_label = QLabel(f"Pokemon Defeated: {pokemon_defeated}")
@@ -234,6 +242,7 @@ def PokemonCollectionDetails(
             captured_date_label = QLabel(f"Captured: N/A")
 
         level_label.setFont(custom_font)
+        cp_label.setFont(custom_font)
         type_label = QLabel("Type:")
         type_label.setFont(custom_font)
         ability_label.setFont(custom_font)
@@ -249,6 +258,7 @@ def PokemonCollectionDetails(
         pkmnimage_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         level_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        cp_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         type_label.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignCenter
         )
@@ -268,6 +278,7 @@ def PokemonCollectionDetails(
         TopR_layout_Box = QVBoxLayout()
         typelayout_widget = QWidget()
         TopL_layout_Box.addWidget(level_label)
+        TopL_layout_Box.addWidget(cp_label)
         TopL_layout_Box.addWidget(pkmnimage_label)
 
         typelayout.addWidget(type_label)

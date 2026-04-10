@@ -1,7 +1,7 @@
 from ..resources import trainer_sprites_path, mypokemon_path, team_pokemon_path
 from ..functions.trainer_functions import find_trainer_rank
 from ..functions.badges_functions import get_achieved_badges
-from aqt.utils import showWarning, showInfo
+from aqt.utils import showWarning
 import math
 import json
 from .ankimon_leaderboard import (
