@@ -43,6 +43,8 @@ from ..pyobj.translator import Translator
 
 from .error_handler import show_warning_with_traceback
 
+from ..business import calculate_present_power, type_compatibility_multiplier
+
 from ..resources import (
     pkmnimgfolder,
     addon_dir,
@@ -161,6 +163,43 @@ class TestWindow(QWidget):
 
             self.first_start = True
             self.pkmn_window = True
+
+    def _draw_cp_pp(self, painter):
+        """Draw CP and Battle Power labels for both Pokemon.
+
+        Battle Power = CP * current_HP * type-matchup multiplier.
+        """
+        cp_font = load_custom_font(14, int(self.settings_obj.get("misc.language")))
+        painter.setFont(cp_font)
+        painter.setPen(QColor(31, 31, 39))
+        try:
+            enemy_cp = int(self.enemy_pokemon.cp)
+        except (AttributeError, TypeError, ValueError):
+            enemy_cp = 0
+        try:
+            main_cp = int(self.main_pokemon.cp)
+        except (AttributeError, TypeError, ValueError):
+            main_cp = 0
+
+        enemy_vs_main = type_compatibility_multiplier(
+            getattr(self.enemy_pokemon, "type", None),
+            getattr(self.main_pokemon, "type", None),
+        )
+        main_vs_enemy = type_compatibility_multiplier(
+            getattr(self.main_pokemon, "type", None),
+            getattr(self.enemy_pokemon, "type", None),
+        )
+        enemy_bp = calculate_present_power(
+            enemy_cp, getattr(self.enemy_pokemon, "hp", 0), enemy_vs_main
+        )
+        main_bp = calculate_present_power(
+            main_cp, getattr(self.main_pokemon, "hp", 0), main_vs_enemy
+        )
+
+        painter.drawText(48, 104, f"CP {enemy_cp:,}")
+        painter.drawText(48, 118, f"BP {enemy_bp:,}")
+        painter.drawText(326, 216, f"CP {main_cp:,}")
+        painter.drawText(326, 230, f"BP {main_bp:,}")
 
     def pokemon_display_first_encounter(self):
         # Main window layout
@@ -326,6 +365,8 @@ class TestWindow(QWidget):
         enemy_max_hp_x = 64 if int(self.enemy_pokemon.max_hp) < 100 else 56  # Shift left if 3 digits
         painter.drawText(enemy_hp_x, 84 if int(self.enemy_pokemon.max_hp) < 100 else 80 , str(int(self.enemy_pokemon.hp)) + "/")
         painter.drawText(enemy_max_hp_x, 84 if int(self.enemy_pokemon.max_hp) < 100 else 88, str(int(self.enemy_pokemon.max_hp)))
+
+        self._draw_cp_pp(painter)
 
         painter.end()
 
@@ -496,6 +537,8 @@ class TestWindow(QWidget):
         enemy_max_hp_x = 64 if int(self.enemy_pokemon.max_hp) < 100 else 56  # Shift left if 3 digits
         painter.drawText(enemy_hp_x, 84 if int(self.enemy_pokemon.max_hp) < 100 else 80 , str(int(self.enemy_pokemon.hp)) + "/")
         painter.drawText(enemy_max_hp_x, 84 if int(self.enemy_pokemon.max_hp) < 100 else 88, str(int(self.enemy_pokemon.max_hp)))
+
+        self._draw_cp_pp(painter)
 
         painter.end()
 
