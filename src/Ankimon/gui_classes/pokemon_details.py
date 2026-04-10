@@ -96,6 +96,7 @@ def PokemonCollectionDetails(
     refresh_callback,
     initial_tab_index: int = 0,
     tab_changed_callback=None,
+    nature: str = "serious",
 ):
     # Create a layout for the details panel
     try:
@@ -190,7 +191,7 @@ def PokemonCollectionDetails(
         for key, val in detail_stats.items():
             if key not in ("hp", "atk", "def", "spa", "spd", "spe"):
                 continue
-            stat = PokemonObject.calc_stat(key, val, level, iv[key], ev[key], "serious")
+            stat = PokemonObject.calc_stat(key, val, level, iv[key], ev[key], nature)
             stats_list.append(stat)
         stats_list.append(detail_stats.get("xp", 0))
         stats_txt = f"Stats:\n Hp: {stats_list[0]}\n Attack: {stats_list[1]}\n Defense: {stats_list[2]}\n Special-attack: {stats_list[3]}\n Special-defense: {stats_list[4]}\n Speed: {stats_list[5]}\n XP: {stats_list[6]}"

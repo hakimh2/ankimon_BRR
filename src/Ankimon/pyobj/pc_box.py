@@ -1018,6 +1018,7 @@ class PokemonPC(QDialog):
             refresh_callback=self.refresh_gui,
             initial_tab_index=self.current_stats_tab_index,
             tab_changed_callback=self.on_stats_tab_changed,
+            nature=pokemon.get("nature", "serious"),
         )
         self.refresh_gui()
 

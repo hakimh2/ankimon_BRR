@@ -227,10 +227,15 @@ class PokemonCollectionDialog(QDialog):
         # Add the paginator layout at the bottom
         self.layout.addLayout(self.paginator_layout)
 
-    def refresh_collection(self, pokemon_list=[]):
-        if not pokemon_list:  # If pokemon_list is empty or None
+    def refresh_collection(self, pokemon_list=None):
+        """Refresh the Pokémon collection and pagination layout.
+
+        ``pokemon_list`` may be an empty list to explicitly render an empty
+        collection (e.g. a filter returning no matches). Only fall back to
+        the full collection when the caller passes ``None``.
+        """
+        if pokemon_list is None:
             pokemon_list = self.pokemon_list
-        """Refresh the Pokémon collection and pagination layout."""
         # Clear existing Pokémon and paginator
         self.refresh_pokemon_collection()
         self.refresh_paginator_layout()
@@ -410,6 +415,7 @@ class PokemonCollectionDialog(QDialog):
             remove_levelcap=self.remove_levelcap,
             logger=self.logger,
             refresh_callback=self.refresh_collection,
+            nature=pokemon.get("nature", "serious"),
         )
 
     def get_gender_symbol(self, gender):
