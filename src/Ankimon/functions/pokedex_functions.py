@@ -4,7 +4,6 @@ from ..resources import (
     pokedesc_lang_path,
     pokenames_lang_path,
     mypokemon_path,
-    learnset_path,
     moves_file_path,
     poke_evo_path,
     poke_species_path,
@@ -20,21 +19,21 @@ import csv
 from ..pyobj.error_handler import show_warning_with_traceback
 
 GROWTH_RATES = {
-    1: "slow", 
-    2: "medium", 
-    3: "fast", 
-    4: "medium-slow", 
-    5: "slow-then-very-fast", 
+    1: "slow",
+    2: "medium",
+    3: "fast",
+    4: "medium-slow",
+    5: "slow-then-very-fast",
     6: "fast-then-very-slow"
 }
 
 STATS = {
     1: "hp",
     2: "attack",
-    3: "defense", 
-    4: "special-attack", 
-    5: "special-defense", 
-    6: "speed", 
+    3: "defense",
+    4: "special-attack",
+    5: "special-defense",
+    6: "speed",
 }
 
 def _normalize_language_id(language):
@@ -160,7 +159,7 @@ def get_mainpokemon_evo(pokemon_name):
 def get_growth_rate(species_id: int) -> str:
     with open(poke_species_path, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
-        
+
         for row in reader:
             if int(row["id"]) == species_id:
                 return GROWTH_RATES[int(row["growth_rate_id"])]
@@ -181,7 +180,7 @@ def get_effort_values(actual_id: int) -> dict[str, int]:
     evs = {}
     with open(stats_csv, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
-            
+
         for row in reader:
             if int(row["pokemon_id"]) == actual_id:
                 evs[STATS[int(row["stat_id"])]] = int(row["effort"])
@@ -190,7 +189,7 @@ def get_effort_values(actual_id: int) -> dict[str, int]:
         "hp": evs["hp"],
         "attack": evs["attack"],
         "defense": evs["defense"],
-        "special-attack": evs["special-attack"], 
+        "special-attack": evs["special-attack"],
         "special-defense": evs["special-defense"],
         "speed": evs["speed"],
     }
@@ -249,63 +248,7 @@ def extract_ids_from_file():
         return []
 
 
-def get_all_pokemon_moves(pk_name, level):
-    """
-    Args:
-        json_file_name (str): The name of the JSON file containing Pokémon learnset data.
-        pokemon_name (str): The name of the Pokémon.
-        level (int): The level at which to check for moves.
-
-    Returns:
-        list: A list of up to 4 random moves and their highest levels.
-    """
-    # Load the JSON file
-    with open(learnset_path, "r", encoding="utf-8") as file:
-        learnsets = json.load(file)
-
-    # Retrieve the learnset for the specified Pokémon
-    pokemon_learnset = learnsets.get(pk_name.lower(), {})
-
-    # Create a dictionary to store moves and their corresponding highest levels
-    moves_at_level_and_lower = {}
-
-    # Loop through the learnset dictionary
-    for move, levels in pokemon_learnset.get("learnset", {}).items():
-        highest_level = float("-inf")  # Initialize with negative infinity
-        eligible_moves = []  # Store moves eligible for inclusion
-
-        for move_level in levels:
-            # Check if the move_level string contains 'L'
-            if "L" in move_level:
-                # Extract the level from the move_level string
-                move_level_int = int(move_level.split("L")[1])
-
-                # Check if the move can be learned at the specified level or lower
-                if move_level_int <= level:
-                    # Update the highest_level if a higher level is found
-                    highest_level = max(highest_level, move_level_int)
-                    eligible_moves.append(move)
-
-        # Check if the eligible moves can be learned at a higher level
-        if highest_level != float("-inf"):
-            can_learn_at_higher_level = any(
-                int(move_level.split("L")[1]) > highest_level
-                for move_level in levels
-                if "L" in move_level
-            )
-            if not can_learn_at_higher_level:
-                moves_at_level_and_lower[move] = highest_level
-
-    attacks = []
-    if moves_at_level_and_lower:
-        # Convert the dictionary into a list of tuples for random selection
-        moves_and_levels_list = list(moves_at_level_and_lower.items())
-
-        # Pick up to 4 random moves and append them to the attacks list
-        for move, highest_level in moves_and_levels_list:
-            attacks.append(f"{move}")
-
-    return attacks
+from .learnset_retrieval import get_all_pokemon_moves  # noqa: F401 — re-export for backwards compat
 
 
 def find_details_move(move_name: str) -> dict:
