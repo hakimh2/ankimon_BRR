@@ -549,7 +549,7 @@ def process_battle_data(
         )
 
         # 2. Enemy attack section
-        if enemy_attack and enemy_attack != "splash":
+        if enemy_attack and enemy_attack != constants.DO_NOTHING_MOVE:
 
             # --- NEW: Format enemy move name ---
             formatted_enemy_attack = format_move_name(enemy_attack)
@@ -562,7 +562,7 @@ def process_battle_data(
             message_parts.append(enemy_attack_msg)
 
         # 3. User attack section
-        if user_attack and user_attack != "splash":
+        if user_attack and user_attack != constants.DO_NOTHING_MOVE:
 
             # Handle special battle statuses first
             if battle_status and battle_status != "fighting":
