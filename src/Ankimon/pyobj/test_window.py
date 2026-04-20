@@ -169,7 +169,7 @@ class TestWindow(QWidget):
 
         Battle Power = CP * current_HP * type-matchup multiplier.
         """
-        cp_font = load_custom_font(14, int(self.settings_obj.get("misc.language")))
+        cp_font = load_custom_font(18, int(self.settings_obj.get("misc.language")))
         painter.setFont(cp_font)
         painter.setPen(QColor(31, 31, 39))
         try:
@@ -189,17 +189,29 @@ class TestWindow(QWidget):
             getattr(self.main_pokemon, "type", None),
             getattr(self.enemy_pokemon, "type", None),
         )
+        enemy_stages = getattr(self.enemy_pokemon, "stat_stages", None) or {}
+        main_stages = getattr(self.main_pokemon, "stat_stages", None) or {}
         enemy_bp = calculate_present_power(
-            enemy_cp, getattr(self.enemy_pokemon, "hp", 0), enemy_vs_main
+            enemy_cp,
+            getattr(self.enemy_pokemon, "hp", 0),
+            enemy_vs_main,
+            enemy_stages.get("atk", 0),
+            enemy_stages.get("spa", 0),
         )
         main_bp = calculate_present_power(
-            main_cp, getattr(self.main_pokemon, "hp", 0), main_vs_enemy
+            main_cp,
+            getattr(self.main_pokemon, "hp", 0),
+            main_vs_enemy,
+            main_stages.get("atk", 0),
+            main_stages.get("spa", 0),
         )
 
-        painter.drawText(48, 104, f"CP {enemy_cp:,}")
-        painter.drawText(48, 118, f"BP {enemy_bp:,}")
-        painter.drawText(326, 216, f"CP {main_cp:,}")
-        painter.drawText(326, 230, f"BP {main_bp:,}")
+        cp_lbl = self.translator.translate("cp_label")
+        bp_lbl = self.translator.translate("bp_label")
+        painter.drawText(48, 104, f"{cp_lbl} {enemy_cp:,}")
+        painter.drawText(48, 118, f"{bp_lbl} {enemy_bp:,}")
+        painter.drawText(326, 216, f"{cp_lbl} {main_cp:,}")
+        painter.drawText(326, 230, f"{bp_lbl} {main_bp:,}")
 
     def pokemon_display_first_encounter(self):
         # Main window layout
@@ -219,7 +231,7 @@ class TestWindow(QWidget):
 
         bckgimage_path = battlescene_path / self.ankimon_tracker_obj.battlescene_file
 
-        if self.ankimon_tracker_obj.pokemon_encouter > 0:
+        if self.ankimon_tracker_obj.pokemon_encounter > 0:
             bckgimage_path = battlescene_path_without_dialog / self.ankimon_tracker_obj.battlescene_file
 
         msg_font = load_custom_font(32, int(self.settings_obj.get("misc.language")))
@@ -290,7 +302,7 @@ class TestWindow(QWidget):
         # draw background to a specific pixel
         painter.drawPixmap(0, 0, pixmap_bckg)
 
-        painter = self.draw_hp_bar(118, 76, 8, 116, self.enemy_pokemon.current_hp, self.enemy_pokemon.max_hp, painter)  # enemy pokemon hp_bar
+        painter = self.draw_hp_bar(118, 76, 8, 116, self.enemy_pokemon.hp, self.enemy_pokemon.max_hp, painter)  # enemy pokemon hp_bar
 
         painter = self.draw_hp_bar(401, 208, 8, 116, self.main_pokemon.hp, self.main_pokemon.max_hp, painter)  # main pokemon hp_bar
 
@@ -395,11 +407,11 @@ class TestWindow(QWidget):
         return painter
 
     def pokemon_display_battle(self):
-        self.ankimon_tracker_obj.pokemon_encouter += 1
+        self.ankimon_tracker_obj.pokemon_encounter += 1
 
         bckgimage_path = battlescene_path / self.ankimon_tracker_obj.battlescene_file
 
-        if self.ankimon_tracker_obj.pokemon_encouter > 1:
+        if self.ankimon_tracker_obj.pokemon_encounter > 1:
             bckgimage_path = battlescene_path_without_dialog / self.ankimon_tracker_obj.battlescene_file
 
         ui_path = battle_ui_path

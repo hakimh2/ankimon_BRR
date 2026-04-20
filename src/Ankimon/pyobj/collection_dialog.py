@@ -27,7 +27,7 @@ from ..functions.pokedex_functions import (
 from ..gui_classes.pokemon_details import PokemonCollectionDetails
 from ..gui_entities import MovieSplashLabel
 from ..resources import mypokemon_path, frontdefault, frontdefault, mainpokemon_path
-from ..business import calculate_cp_from_dict
+from ..business import calculate_cp_from_dict, cp_breakdown_tooltip
 
 
 class PokemonCollectionDialog(QDialog):
@@ -76,6 +76,13 @@ class PokemonCollectionDialog(QDialog):
         self.sort_combo = QComboBox()
         self.sort_combo.addItems(["Capture Order", "ID", "CP", "Level", "Name"])
         self.sort_combo.currentIndexChanged.connect(self.apply_sort_and_filter)
+
+        # Descending toggle — matches PC Box convention. Default ON so
+        # the common "strongest/highest first" CP and Level sorts keep
+        # their pre-existing behaviour.
+        self.desc_sort = QCheckBox("Descending")
+        self.desc_sort.setChecked(True)
+        self.desc_sort.stateChanged.connect(self.apply_sort_and_filter)
 
         # Search Filter
         self.search_edit = QLineEdit()
@@ -136,6 +143,7 @@ class PokemonCollectionDialog(QDialog):
         filter_layout.addWidget(self.type_combo)
         filter_layout.addWidget(QLabel("Sort:"))
         filter_layout.addWidget(self.sort_combo)
+        filter_layout.addWidget(self.desc_sort)
         self.layout.addLayout(filter_layout)
 
         self.scroll_area = QScrollArea()
@@ -211,16 +219,16 @@ class PokemonCollectionDialog(QDialog):
 
         ``pokemon_list`` may be an empty list to explicitly render an empty
         collection (e.g. a filter returning no matches). Only fall back to
-        the full collection when the caller passes ``None``.
+        the full collection when the caller passes ``None`` — and in that
+        case reload from disk so the UI picks up any recent
+        rename/release/trade persisted by another code path.
         """
         if pokemon_list is None:
-            pokemon_list = self.pokemon_list
+            pokemon_list = self.load_pokemon_data() or []
         # Clear existing Pokémon and paginator
         self.refresh_pokemon_collection()
         self.refresh_paginator_layout()
 
-        # Reload Pokémon data and setup the UI
-        self.load_pokemon_data()
         self.setup_ui(pokemon_list)
 
     def setup_ui(self, pokemon_list=[]):
@@ -274,9 +282,9 @@ class PokemonCollectionDialog(QDialog):
                 ability_label = self.create_label(
                     f"Ability: {pokemon_ability.capitalize()}", 8
                 )
-                cp_label = self.create_label(
-                    f"CP: {pokemon.get('cp') or calculate_cp_from_dict(pokemon)}", 8
-                )
+                cp_value = pokemon.get("cp") or calculate_cp_from_dict(pokemon)
+                cp_label = self.create_label(f"CP {cp_value:,}", 8)
+                cp_label.setToolTip(cp_breakdown_tooltip(pokemon))
 
                 image_label = QLabel()
                 image_label.setPixmap(pixmap)
@@ -381,7 +389,7 @@ class PokemonCollectionDialog(QDialog):
             shiny=pokemon.get("shiny", False),
             ability=pokemon["ability"],
             type=pokemon["type"],
-            detail_stats={**pokemon["stats"], "xp": pokemon.get("xp", 0)},
+            detail_stats={**(pokemon.get("base_stats") or pokemon["stats"]), "xp": pokemon.get("xp", 0)},
             attacks=pokemon["attacks"],
             base_experience=pokemon["base_experience"],
             growth_rate=pokemon["growth_rate"],
@@ -455,15 +463,16 @@ class PokemonCollectionDialog(QDialog):
                 ):
                     filtered_pokemon.append(pokemon)
 
-            # Sort
+            # Sort — direction controlled by the Descending checkbox
+            reverse = self.desc_sort.isChecked()
             if sort_key == "ID":
-                filtered_pokemon.sort(key=lambda x: x["id"])
+                filtered_pokemon.sort(key=lambda x: x["id"], reverse=reverse)
             elif sort_key == "CP":
-                filtered_pokemon.sort(key=lambda x: x.get("cp") or calculate_cp_from_dict(x), reverse=True)
+                filtered_pokemon.sort(key=lambda x: x.get("cp") or calculate_cp_from_dict(x), reverse=reverse)
             elif sort_key == "Level":
-                filtered_pokemon.sort(key=lambda x: x.get("level", 0), reverse=True)
+                filtered_pokemon.sort(key=lambda x: x.get("level", 0), reverse=reverse)
             elif sort_key == "Name":
-                filtered_pokemon.sort(key=lambda x: x.get("name", "").lower())
+                filtered_pokemon.sort(key=lambda x: x.get("name", "").lower(), reverse=reverse)
 
             self.current_page = 0
             self.refresh_collection(filtered_pokemon)

@@ -34,6 +34,7 @@ from Ankimon.business import (
     pokemon_go_raw_stats,
     type_compatibility_multiplier,
     calculate_cp_from_dict,
+    cp_breakdown_tooltip,
     _load_type_chart,
 )
 
@@ -160,6 +161,25 @@ class TestCalculatePresentPower:
         pp = calculate_present_power(None, None, None)
         assert pp == 0
 
+    def test_atk_boost_increases_bp(self):
+        # +2 stage = 5/3, BP = 100 × 50 × 1 × 5/3 = 8333.33 → floor 8333
+        assert calculate_present_power(100, 50, 1.0, atk_stage=2, spa_stage=2) == 8333
+
+    def test_atk_drop_decreases_bp(self):
+        # -2 stage = 3/5 = 0.6, BP = 100 × 50 × 1 × 0.6 = 3000
+        assert calculate_present_power(100, 50, 1.0, atk_stage=-2, spa_stage=-2) == 3000
+
+    def test_mixed_atk_spa_stages_averaged(self):
+        # atk +2 (5/3), spa -2 (3/5), avg = 17/15, BP = 5000 × 17/15 = 5666.66 → floor 5666
+        assert calculate_present_power(100, 50, 1.0, atk_stage=2, spa_stage=-2) == 5666
+
+    def test_out_of_range_stage_neutral(self):
+        # Stage 7 is invalid per get_multiplier_stats — should fall back to 1.0
+        assert calculate_present_power(100, 50, 1.0, atk_stage=7, spa_stage=7) == 5000
+
+    def test_none_stage_neutral(self):
+        assert calculate_present_power(100, 50, 1.0, atk_stage=None, spa_stage=None) == 5000
+
 
 class TestCalculateCPFromDict:
     """Tests for the dict-based CP entry point used by collection/PC box."""
@@ -208,3 +228,77 @@ class TestCalculateCPFromDict:
         pokemon = {"stats": {}, "level": 1}
         cp = calculate_cp_from_dict(pokemon)
         assert cp == 10  # minimum clamp with all defaults
+
+
+class TestDictShapeEquivalence:
+    """Sentinel: caught-Pokemon dicts ('stats' = base_stats, no 'base_stats')
+    and to_dict dicts ('base_stats' = bases, 'stats' = level-scaled) must
+    produce the same CP. Regression guard for the pokemon-persistence fix
+    that routed save_caught_pokemon through PokemonObject.to_dict().
+    """
+
+    BASE = {"hp": 100, "atk": 80, "def": 90, "spa": 70, "spd": 85, "spe": 95}
+    LEVEL = 50
+    IV = {"hp": 20, "atk": 25, "def": 30, "spa": 15, "spd": 28, "spe": 31}
+    EV = {"hp": 100, "atk": 200, "def": 150, "spa": 80, "spd": 100, "spe": 80}
+
+    def _caught_shape(self):
+        return {
+            "level": self.LEVEL,
+            "stats": self.BASE,
+            "iv": self.IV,
+            "ev": self.EV,
+        }
+
+    def _to_dict_shape(self):
+        return {
+            "level": self.LEVEL,
+            "base_stats": self.BASE,
+            "stats": {k: 999 for k in self.BASE},
+            "iv": self.IV,
+            "ev": self.EV,
+            "cp": 42,
+            "nature": "adamant",
+        }
+
+    def test_both_shapes_give_same_cp(self):
+        assert calculate_cp_from_dict(self._caught_shape()) == calculate_cp_from_dict(
+            self._to_dict_shape()
+        )
+
+    def test_to_dict_shape_ignores_level_scaled_stats(self):
+        direct = calculate_pokemon_go_cp(
+            *pokemon_go_raw_stats(self.BASE, self.IV, self.EV), self.LEVEL
+        )
+        assert calculate_cp_from_dict(self._to_dict_shape()) == direct
+
+
+class TestCPBreakdownTooltip:
+    BASE = {"hp": 100, "atk": 80, "def": 90, "spa": 70, "spd": 85, "spe": 95}
+
+    def test_contains_formula(self):
+        tip = cp_breakdown_tooltip(
+            {"base_stats": self.BASE, "iv": {}, "ev": {}, "level": 50}
+        )
+        assert "CP = floor(" in tip
+        assert "CPM²" in tip or "CPM^2" in tip or "CPM" in tip
+
+    def test_contains_level_100_projection(self):
+        tip = cp_breakdown_tooltip(
+            {"base_stats": self.BASE, "iv": {}, "ev": {}, "level": 50}
+        )
+        expected_max = calculate_pokemon_go_cp(
+            *pokemon_go_raw_stats(self.BASE, {}, {}), 100
+        )
+        assert f"{expected_max:,}" in tip
+
+    def test_handles_caught_shape(self):
+        # caught dicts have "stats"=base_stats, no "base_stats"
+        tip = cp_breakdown_tooltip(
+            {"stats": self.BASE, "iv": {}, "ev": {}, "level": 25}
+        )
+        assert "CP at Level 100" in tip
+
+    def test_handles_missing_level(self):
+        tip = cp_breakdown_tooltip({"base_stats": self.BASE})
+        assert "CP at Level 100" in tip
