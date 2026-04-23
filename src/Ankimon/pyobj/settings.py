@@ -168,7 +168,6 @@ class Settings:
     def set(self, key, value):
         self.config[key] = value
         self.save_config(self.config)
-        self.load_config()
 
     def compute_gui_config(self):
         # Manage conditional GUI settings
