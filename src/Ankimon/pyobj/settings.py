@@ -155,6 +155,10 @@ class Settings:
             file_content = warning_message + obfuscated_str
             with open(obfuscated_config_path, "w", encoding="utf-8") as f:
                 f.write(file_content)
+            # Update internal config after successful save
+            self.config = config
+            # Recompute GUI-dependent settings
+            self.compute_gui_config()
         except OSError as e:
             print(f"Ankimon: Could not save obfuscated config: {e}")
 
