@@ -318,6 +318,7 @@ class SettingsWindow(QMainWindow):
                     "Automatic Battle",
                     "Cards per Round",
                     "Show Main Pokémon in Reviewer",
+                    "Hide HUD on Reviewer Startup", 
                     "Show Pokémon Buttons",
                     "Pop-Up on Defeat",
                     "Show Text Message Box in Reviewer",

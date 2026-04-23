@@ -21,6 +21,7 @@
     "gui.reviewer_text_message_box": "Show Text Message Box in Reviewer",
     "gui.reviewer_text_message_box_time": "Message Box Display Time",
     "gui.show_mainpkmn_in_reviewer": "Show Main Pokémon in Reviewer",
+    "gui.hud_hidden_on_startup": "Hide HUD on Reviewer Startup",
     "gui.team_deck_view": "Team Overview in Deck Overview",
     "gui.view_main_front": "View Main Pokémon Front",
     "gui.team_deck_view": "Team Overview in Deck Overview",
