@@ -144,8 +144,6 @@ class Settings:
 
         return config
 
-
-    
     def save_config(self, config):
         from ..pyobj.ankimon_sync import AnkimonDataSync  # To reuse obfuscation logic
 
@@ -164,8 +162,6 @@ class Settings:
         except OSError as e:
             print(f"Ankimon: Could not save obfuscated config: {e}")
 
-
-    
     def get(self, key, default=None):
         return self.config.get(key, default)
 
