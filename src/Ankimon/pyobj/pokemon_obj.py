@@ -133,6 +133,47 @@ class PokemonObject:
     def stats(self, value):
         raise AttributeError("Setting the value of the stats of a Pokemon is forbidden as they are automatically calculated using their base stats. You can instead set the base_stats of the Pokemon.")
 
+    @property
+    def cp(self) -> int:
+        """Combat Power — Pokemon GO style formula.
+
+        ``CP = floor(Attack × √Defense × √Stamina × CPM² / 10)``
+
+        Uses raw stats (base + IV + EV/4) so CPM is the sole level
+        multiplier.  See :func:`business.calculate_pokemon_go_cp`.
+
+        Memoized: attribute assignment to ``level``, ``ev``, ``iv``, or
+        ``base_stats`` invalidates the cache via ``__setattr__``. Mutating
+        those containers in-place (e.g. ``self.ev["atk"] += 1``) does not,
+        so call :meth:`invalidate_cp_cache` explicitly at those sites.
+        """
+        cached = getattr(self, "_cached_cp", None)
+        if cached is not None:
+            return cached
+        # Local import to avoid a circular dependency with ``business``.
+        from ..business import calculate_pokemon_go_cp, pokemon_go_raw_stats
+
+        attack, defense, stamina = pokemon_go_raw_stats(
+            self.base_stats, self.iv, self.ev
+        )
+        cp_val = calculate_pokemon_go_cp(attack, defense, stamina, self.level)
+        object.__setattr__(self, "_cached_cp", cp_val)
+        return cp_val
+
+    def invalidate_cp_cache(self) -> None:
+        """Drop memoized CP so the next ``cp`` access recomputes.
+
+        Call after mutating ``ev``/``iv``/``base_stats`` dict contents
+        in place (attribute reassignment is caught automatically by
+        ``__setattr__``).
+        """
+        object.__setattr__(self, "_cached_cp", None)
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if name in ("level", "ev", "iv", "base_stats"):
+            object.__setattr__(self, "_cached_cp", None)
+
     @classmethod
     def get_nature_stat_mult(cls, stat_name: str, nature: str) -> float:
         if stat_name == "atk":
@@ -173,6 +214,8 @@ class PokemonObject:
             "type": self.type,
             "base_stats": self.base_stats,
             "stats": self.stats,  # Calculated stats
+            "cp": self.cp,
+            "nature": self.nature,
             "ev": self.ev,
             "iv": self.iv,
             "attacks": self.attacks,
@@ -191,7 +234,7 @@ class PokemonObject:
             "tier": self.tier,  # Added tier
             "is_favorite": getattr(self, "is_favorite", False),  # Added with default
             # Additional fields from your example
-            "current_hp": getattr(self, "current_hp", "hp"),  # For backward compatibility
+            "current_hp": getattr(self, "current_hp", self.hp),
             "held_item": self.held_item,
         }
 
@@ -203,11 +246,25 @@ class PokemonObject:
         """Return the stats of the Pokémon."""
         return vars(self)
 
+    # Derived/read-only attributes to skip in update_stats. ``cp`` and
+    # ``stats`` are @property getters whose setattr raises
+    # AttributeError (silently swallowed by the caller's bare
+    # `except Exception`). ``max_hp`` is a plain cache field — setattr
+    # would succeed, but the splatted value is almost certainly stale
+    # relative to the new ``level``/``base_stats``, so we skip it and
+    # recompute it ourselves below.
+    _READONLY_ATTRS = frozenset({"cp", "stats", "max_hp"})
+
     def update_stats(self, **kwargs):
         """Update the attributes of the Pokémon object with keyword arguments."""
         for key, value in kwargs.items():
+            if key in self._READONLY_ATTRS:
+                continue
             if hasattr(self, key):
                 setattr(self, key, value)
+        # Derived caches — recompute from the (possibly updated)
+        # base_stats/level/iv/ev so they don't go stale.
+        self.max_hp = self.calculate_max_hp()
         self._update_battle_stats()  # Update battle stats
 
     def reset_stats(self):
