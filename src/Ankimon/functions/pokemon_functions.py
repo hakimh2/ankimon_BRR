@@ -168,9 +168,15 @@ def save_fossil_pokemon(pokemon_id):
     # Create a dictionary to store the Pokémon's data
     # add all new values like hp as max_hp, evolution_data, description and growth rate
     name = search_pokedex_by_id(pokemon_id)
+    if not name or name == "Pokémon not found":
+        raise ValueError(f"Could not find fossil Pokemon for id {pokemon_id}")
     id = pokemon_id
     stats = search_pokedex(name, "baseStats")
+    if not isinstance(stats, dict):
+        raise ValueError(f"Missing base stats for fossil Pokemon '{name}'")
     abilities = search_pokedex(name, "abilities")
+    if not isinstance(abilities, dict):
+        abilities = {}
     gender = pick_random_gender(name.lower())
     numeric_abilities = {k: v for k, v in abilities.items() if k.isdigit()}
     # Check if there are numeric abilities
@@ -183,6 +189,8 @@ def save_fossil_pokemon(pokemon_id):
         # Set to "No Ability" if there are no numeric abilities
         ability = "No Ability"
     type = search_pokedex(name, "types")
+    if not isinstance(type, list):
+        type = []
     growth_rate = get_growth_rate(id)
     base_experience = search_pokedex(name.lower(), "actual_id")
     level = 5

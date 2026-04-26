@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QLineEdit,
     QScrollArea,
+    QInputDialog,
 )
 
 from ..pyobj.evolution_window import EvoWindow
@@ -67,6 +68,8 @@ class ItemWindow(QWidget):
         self.achievements: dict[str, bool] = achievements
         self.starter_window: StarterWindow = starter_window
         self.evo_window: EvoWindow = evo_window
+        self._item_action_in_progress = False
+        self._pokemon_choices_cache = None
         self.initUI()
 
     def initUI(self):
@@ -193,20 +196,22 @@ class ItemWindow(QWidget):
         row, col = 0, 0
         max_items_per_row = 3
 
-        itembag_list = self.read_items_file()
+        itembag_list = self._normalize_item_entries(self.read_items_file())
         if not itembag_list:  # Simplified check
             empty_label = QLabel("You don't own any items yet.")
             self.contentLayout.addWidget(empty_label, 1, 1)
         else:
             for item in itembag_list:
-                item_widget = self.ItemLabel(item["item"], item["quantity"], item["type"])
-                # FIX 4: Set consistent size policy for all item widgets
-                item_widget.setMinimumWidth(180)  # Ensure minimum width for each item
-                self.contentLayout.addWidget(item_widget, row, col)
-                col += 1
-                if col >= max_items_per_row:
-                    row += 1
-                    col = 0
+                try:
+                    item_widget = self.ItemLabel(item["item"], item["quantity"], item.get("type"))
+                    item_widget.setMinimumWidth(180)
+                    self.contentLayout.addWidget(item_widget, row, col)
+                    col += 1
+                    if col >= max_items_per_row:
+                        row += 1
+                        col = 0
+                except Exception as e:
+                    self.logger.log("error", f"Skipping invalid item '{item}': {e}")
 
     def filter_items(self):
         search_text = self.search_edit.text().lower()
@@ -219,7 +224,7 @@ class ItemWindow(QWidget):
         row, col = 0, 0
         max_items_per_row = 3
 
-        filtered_items = list(self.read_items_file())
+        filtered_items = self._normalize_item_entries(self.read_items_file())
         if not filtered_items:
             empty_label = QLabel("You don't own any items yet.")
             self.contentLayout.addWidget(empty_label, 1, 1)
@@ -262,21 +267,29 @@ class ItemWindow(QWidget):
             return
 
         for item in filtered_items:
-            item_widget = self.ItemLabel(item["item"], item["quantity"], item.get("type"))
-            # FIX 5: Ensure consistent sizing for filtered items too
-            item_widget.setMinimumWidth(180)
-            self.contentLayout.addWidget(item_widget, row, col)
-            col += 1
-            if col >= max_items_per_row:
-                row += 1
-                col = 0
+            try:
+                item_widget = self.ItemLabel(item["item"], item["quantity"], item.get("type"))
+                item_widget.setMinimumWidth(180)
+                self.contentLayout.addWidget(item_widget, row, col)
+                col += 1
+                if col >= max_items_per_row:
+                    row += 1
+                    col = 0
+            except Exception as e:
+                self.logger.log("error", f"Skipping invalid item '{item}': {e}")
 
     def give_held_item(self, comboBox, item_name):
         individual_id = comboBox.itemData(comboBox.currentIndex(), role=UserRole)
+        self._give_held_item_by_id(individual_id, item_name)
+
+    def _give_held_item_by_id(self, individual_id, item_name):
+        if not individual_id:
+            self.logger.log_and_showinfo("error", "No Pokemon selected.")
+            return
         try:
             db = mw.ankimon_db
             target_pokemon_data = db.get_pokemon(individual_id)
-            
+
             if target_pokemon_data:
                 pokemon_obj = PokemonObject.from_dict(target_pokemon_data)
                 pokemon_obj.give_held_item(item_name)
@@ -354,26 +367,16 @@ class ItemWindow(QWidget):
         elif item_name in self.evolution_items:
             use_item_button = QPushButton("Evolve Pokemon")
             use_item_button.clicked.connect(
-                lambda: self.Check_Evo_Item(
-                    comboBox.itemData(comboBox.currentIndex(), role=UserRole),
-                    comboBox.itemData(comboBox.currentIndex(), role=UserRole + 1),
-                    item_name
-                    )
+                lambda: self._prompt_and_check_evo_item(item_name)
             )
-            comboBox = QComboBox()
-            self.PokemonList(comboBox)
-            item_frame.addWidget(comboBox)
         elif item_name in GiveItemWindow.NOT_YET_IMPLEMENTED_ITEMS or item_name.endswith("-berry") or item_name.endswith("-gem"):
             use_item_button = QLabel("Not implemented yet")
             use_item_button.setAlignment(Qt.AlignmentFlag.AlignCenter)
         else:
-            comboBox = QComboBox()
-            self.PokemonList(comboBox)
             use_item_button = QPushButton("Give Item To Pokemon")
             use_item_button.clicked.connect(
-                lambda: self.give_held_item(comboBox, item_name)
+                lambda: self._prompt_and_give_held_item(item_name)
             )
-            item_frame.addWidget(comboBox)
 
         item_frame.addWidget(use_item_button)
         item_frame.addWidget(info_item_button)
@@ -400,13 +403,67 @@ class ItemWindow(QWidget):
         except Exception as e:
             self.logger.log_and_showinfo("error", f"Error loading Pokémon list: {e} {pokemon}")
 
+    def _load_pokemon_choices(self):
+        if self._pokemon_choices_cache is not None:
+            return self._pokemon_choices_cache
+        choices = []
+        try:
+            db = mw.ankimon_db
+            rows = db.execute("SELECT name, individual_id, pokedex_id FROM captured_pokemon").fetchall()
+            for row in rows:
+                name, individual_id, poke_id = row[0], row[1], row[2]
+                if name and individual_id and poke_id:
+                    choices.append((f"{name} ({individual_id[:8]})", individual_id, poke_id))
+        except Exception as e:
+            self.logger.log("error", f"Error loading Pokemon list: {e}")
+        self._pokemon_choices_cache = choices
+        return choices
+
+    def _select_pokemon(self, title: str):
+        choices = self._load_pokemon_choices()
+        if not choices:
+            self.logger.log_and_showinfo("error", "No Pokemon available.")
+            return None
+        labels = [c[0] for c in choices]
+        selected_label, ok = QInputDialog.getItem(self, title, "Select Pokemon:", labels, 0, False)
+        if not ok:
+            return None
+        for label, individual_id, poke_id in choices:
+            if label == selected_label:
+                return individual_id, poke_id
+        return None
+
+    def _prompt_and_give_held_item(self, item_name: str):
+        selected = self._select_pokemon("Give Item")
+        if not selected:
+            return
+        individual_id, _ = selected
+        self._give_held_item_by_id(individual_id, item_name)
+
+    def _prompt_and_check_evo_item(self, item_name: str):
+        selected = self._select_pokemon("Use Evolution Item")
+        if not selected:
+            return
+        individual_id, prevo_id = selected
+        self.Check_Evo_Item(individual_id, prevo_id, item_name)
+
     def Evolve_Fossil(self, item_name: str, fossil_id: int, fossil_poke_name: str):
-        self.starter_window.display_fossil_pokemon(fossil_id, fossil_poke_name)
-        save_fossil_pokemon(fossil_id)
-        self.delete_item(item_name)
-        
-        from ..singletons import pokemon_pc
-        pokemon_pc.refresh_pokemon_grid()
+        if self._item_action_in_progress:
+            return
+        self._item_action_in_progress = True
+        try:
+            if not isinstance(fossil_id, int):
+                raise ValueError(f"Invalid fossil id: {fossil_id}")
+            save_fossil_pokemon(fossil_id)
+            self._pokemon_choices_cache = None
+            self.delete_item(item_name)
+            self.starter_window.display_fossil_pokemon(fossil_id, fossil_poke_name)
+            from ..singletons import pokemon_pc
+            pokemon_pc.refresh_pokemon_grid()
+        except Exception as e:
+            show_warning_with_traceback(parent=self, exception=e, message=f"Error using fossil item '{item_name}'")
+        finally:
+            self._item_action_in_progress = False
 
     def modified_pokeball_chances(self, item_name: str, catch_chance: int):
         # Adjust catch chance based on Pokémon type and Poké Ball
@@ -551,8 +608,29 @@ class ItemWindow(QWidget):
             self.logger.log("error", f"Error reading items from database: {e}")
             return []
 
-        except Exception as e:
-            self.logger.log("error", f"Error fixing and loading items: {e}")
+    def _normalize_item_entries(self, items_data):
+        if not isinstance(items_data, list):
+            return []
+        normalized = []
+        for raw in items_data:
+            if not isinstance(raw, dict):
+                continue
+            name = raw.get("item")
+            if not isinstance(name, str) or not name.strip():
+                continue
+            quantity = raw.get("quantity", 1)
+            try:
+                quantity = int(quantity)
+            except Exception:
+                quantity = 1
+            if quantity < 1:
+                continue
+            normalized.append({
+                **raw,
+                "item": name.strip(),
+                "quantity": quantity,
+            })
+        return normalized
 
     def clear_layout(self, layout):
         while layout.count():
@@ -562,7 +640,7 @@ class ItemWindow(QWidget):
                 widget.deleteLater()
 
     def showEvent(self, event):
-        # This method is called when the window is shown or displayed
+        self._pokemon_choices_cache = None
         self.renewWidgets()
 
     def show_window(self):
