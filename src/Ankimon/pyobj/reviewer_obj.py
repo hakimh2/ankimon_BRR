@@ -19,6 +19,8 @@ class Reviewer_Manager:
         self.life_bar_injected = False
         self.seconds = 0
         self.myseconds = 0
+        self.hud_hidden = False 
+        self.hud_data = None    
 
         # Register the functions for the hooks
         gui_hooks.reviewer_will_end.append(self.reviewer_reset_life_bar_inject)
@@ -228,12 +230,32 @@ class Reviewer_Manager:
         """
 
         # Use reviewer.web.eval to call the portal
+        # Store HUD data and auto-render if not hidden on startup
+        hud_hidden_on_startup = bool(self.settings.get("gui.hud_hidden_on_startup"))
         js_code = f"""
-        (function(h,c){{
-            if(window.__ankimonHud && window.__ankimonHud.update){{
-                window.__ankimonHud.update(h,c);
+        (function(h,c,hiddenOnStartup){{
+            if(window.__ankimonHud){{
+                // Always update the stored data, regardless of visibility
+                window.__ankimonHudData = {{html: h, css: c}};
+                
+                // Only initialize on first call - preserve user's toggle state on subsequent updates
+                if(window.__ankimonHudHidden === undefined){{
+                    window.__ankimonHudHidden = hiddenOnStartup;
+                    window.__ankimonHudRendered = false;
+                }}
+                
+                // If HUD should be visible on startup, render it now
+                if(!hiddenOnStartup && !window.__ankimonHudRendered){{
+                    window.__ankimonHud.update(h,c);
+                    window.__ankimonHudRendered = true;
+                }}
+                // If HUD is already rendered and visible, update it with new data
+                else if(window.__ankimonHudRendered && !window.__ankimonHudHidden){{
+                    window.__ankimonHud.update(h,c);
+                }}
+                // If HUD is hidden, data is still stored in __ankimonHudData for when it's toggled on
             }}
-        }})({json.dumps(hud_html)}, {json.dumps(hud_css)});
+        }})({json.dumps(hud_html)}, {json.dumps(hud_css)}, {str(hud_hidden_on_startup).lower()});
         """
         reviewer.web.eval(js_code)
 
@@ -242,25 +264,47 @@ class Reviewer_Manager:
             (function() {
                 if (window.ankimonKeyListener) return;
                 window.ankimonKeyListener = true;
-                let originalParent = null; // To store the parent element
-                let hudHost = null; // To store the ankimon-hud-host element
+                let originalParent = null;
+                let hudHost = null;
 
                 document.addEventListener('keydown', function(event) {
                     if (event.key === '8') {
-                        if (!hudHost) { // First time '8' is pressed, find the element
+                        if (!hudHost) {
                             hudHost = document.getElementById('ankimon-hud-host');
                             if (hudHost) {
-                                originalParent = hudHost.parentNode; // Store its parent
+                                originalParent = hudHost.parentNode;
                             } else {
-                                console.error('Ankimon: ankimon-hud-host not found for removal.');
+                                console.error('Ankimon: ankimon-hud-host not found.');
                                 return;
                             }
                         }
 
-                        if (hudHost.parentNode) { // If it has a parent, it's currently in the DOM, so remove it
-                            hudHost.parentNode.removeChild(hudHost);
-                        } else if (originalParent) { // If it has no parent but we have an original parent, re-add it
-                            originalParent.appendChild(hudHost);
+                        // First time: render if not yet rendered
+                        if (!window.__ankimonHudRendered && window.__ankimonHudData && window.__ankimonHud) {
+                            window.__ankimonHud.update(window.__ankimonHudData.html, window.__ankimonHudData.css);
+                            window.__ankimonHudRendered = true;
+                            originalParent = hudHost.parentNode;
+                            // Toggle visibility on first render
+                            window.__ankimonHudHidden = !window.__ankimonHudHidden;
+                            // If should be hidden, remove it from DOM
+                            if (window.__ankimonHudHidden && originalParent) {
+                                originalParent.removeChild(hudHost);
+                            }
+                        } else if (window.__ankimonHudRendered) {
+                            // Already rendered, toggle visibility
+                            window.__ankimonHudHidden = !window.__ankimonHudHidden;
+                            
+                            // If showing (unhiding), update with latest data
+                            if (!window.__ankimonHudHidden && window.__ankimonHudData && window.__ankimonHud) {
+                                window.__ankimonHud.update(window.__ankimonHudData.html, window.__ankimonHudData.css);
+                            }
+                            
+                            // Toggle DOM visibility
+                            if (hudHost.parentNode) {
+                                hudHost.parentNode.removeChild(hudHost);
+                            } else if (originalParent) {
+                                originalParent.appendChild(hudHost);
+                            }
                         }
                     }
                 });
