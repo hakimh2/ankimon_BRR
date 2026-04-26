@@ -95,23 +95,24 @@ def test_database_initialization(temp_env):
 
 def test_item_save_and_smart_sync(temp_env):
     db, tmp_path = temp_env
-    # 1. First save (will use CSV)
-    db.save_item(None, "fresh-water", 5)
+    # 1. First add (uses CSV to discover metadata)
+    db.add_item("fresh-water", 5)
     item = db.get_item("fresh-water")
     assert item["cost"] == 200
-    
+
     # 2. Second save (should use DB cache, even if CSV is gone)
     os.remove(tmp_path / "items.csv")
     db.save_item(None, "fresh-water", 10)
-    
+
     item = db.get_item("fresh-water")
     assert item["quantity"] == 10
     assert item["cost"] == 200 # Preserved from DB cache
 
 def test_tm_auto_tagging(temp_env):
     db, _ = temp_env
-    db.save_item(None, "dragonbreath", 1)
-    
+    # add_item looks up CSV metadata, discovering category_id=37 (TM)
+    db.add_item("dragonbreath", 1)
+
     item = db.get_item("dragonbreath")
     assert (item.get("extra_data") or {}).get("type") == "TM"
 
