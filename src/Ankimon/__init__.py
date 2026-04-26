@@ -803,33 +803,5 @@ def _get_cards_per_round() -> int:
 
     return 2
 
-if settings_obj.get("misc.discord_rich_presence") == True:
-    client_id = "1319014423876075541"  # Replace with your actual client ID
-    large_image_url = "https://raw.githubusercontent.com/Unlucky-Life/ankimon/refs/heads/main/src/Ankimon/ankimon_logo.png"  # URL for the large image
-    mw.ankimon_presence = DiscordPresence(
-        client_id, large_image_url, ankimon_tracker_obj, logger, settings_obj
-    )  # Establish connection and get the presence instance
-
-    # Hook functions for Anki
-    def on_reviewer_initialized(rev, card, ease):
-        if mw.ankimon_presence:
-            if mw.ankimon_presence.loop is False:
-                mw.ankimon_presence.loop = True
-                mw.ankimon_presence.start()
-        else:
-            client_id = "1319014423876075541"  # Replace with your actual client ID
-            large_image_url = "https://raw.githubusercontent.com/Unlucky-Life/ankimon/refs/heads/main/src/Ankimon/ankimon_logo.png"  # URL for the large image
-            mw.ankimon_presence = DiscordPresence(
-                client_id, large_image_url, ankimon_tracker_obj, logger, settings_obj
-            )  # Establish connection and get the presence instance
-            mw.ankimon_presence.loop = True
-            mw.ankimon_presence.start()
-
-    def on_reviewer_will_end(*args):
-        mw.ankimon_presence.loop = False
-        mw.ankimon_presence.stop_presence()
-
-    # Register the hook functions with Anki's GUI hooks
-    gui_hooks.reviewer_did_answer_card.append(on_reviewer_initialized)
-    gui_hooks.reviewer_will_end.append(mw.ankimon_presence.stop_presence)
-    gui_hooks.sync_did_finish.append(mw.ankimon_presence.stop)
+from .discord_integration import setup_discord_hooks
+setup_discord_hooks()
