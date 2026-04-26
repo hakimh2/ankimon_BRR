@@ -63,12 +63,15 @@ class Reviewer_Manager:
             reviewer.web.eval("if(window.__ankimonHud) window.__ankimonHud.clear();")
             return
 
-        # Check if the enemy pokemon is in the user's collection (optimized query)
-        enemy_name_lower = self.enemy_pokemon.name.lower()
+        # Check if the enemy pokemon is in the user's collection
         is_pokemon_owned = False
         try:
             db = mw.ankimon_db
-            is_pokemon_owned = db.has_pokemon_by_name(enemy_name_lower)
+            cursor = db.execute(
+                "SELECT 1 FROM captured_pokemon WHERE pokedex_id = ? LIMIT 1",
+                (self.enemy_pokemon.id,),
+            )
+            is_pokemon_owned = cursor.fetchone() is not None
         except Exception:
             pass
 
