@@ -50,7 +50,6 @@ class PokemonShopManager:
         self.daily_items_reroll_cost = 100
         self.todays_daily_items = []
         self.todays_daily_tms = []
-        self.shop_save_file = user_path / "todays_shop.json"
 
         # Retro Pokemon styling dimensions
         self.frame_h = 120
@@ -379,31 +378,58 @@ class PokemonShopManager:
         layout.addLayout(info_layout)
         layout.addStretch()
 
+        # Check inventory for owned status
+        owned_quantity = 0
+        try:
+            db_item = mw.ankimon_db.get_item(item["name"])
+            if db_item:
+                owned_quantity = db_item.get("quantity", 0)
+        except Exception:
+            pass
+
+        button_text = "BUY"
+        if is_tm and owned_quantity > 0:
+            button_text = "OWNED"
+        elif not is_tm and owned_quantity > 0:
+            button_text = f"BUY (x{owned_quantity})"
+
         # Buy button with theme-aware styling
-        buy_button = QPushButton("BUY")
+        buy_button = QPushButton(button_text)
         buy_font = QFont(self.early_gameboy_font)
         buy_font.setPointSize(8)
         buy_button.setFont(buy_font)
         buy_button.setFixedHeight(35)
-        buy_button.setFixedWidth(buy_button.sizeHint().width())
+        buy_button.setFixedWidth(buy_button.fontMetrics().boundingRect(button_text).width() + 20)
 
-        buy_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {section_color};
-                color: {colors["text_primary"]};
-                border: 2px solid {colors["text_primary"]};
-                border-radius: 6px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: {colors["button_hover"]};
-                color: {section_color};
-                border: 2px solid {section_color};
-            }}
-            QPushButton:pressed {{
-                background-color: {colors["border"]};
-            }}
-        """)
+        if is_tm and owned_quantity > 0:
+            buy_button.setEnabled(False)
+            buy_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {colors["frame_bg"]};
+                    color: {colors["text_secondary"]};
+                    border: 2px solid {colors["border"]};
+                    border-radius: 6px;
+                    font-weight: bold;
+                }}
+            """)
+        else:
+            buy_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {section_color};
+                    color: {colors["text_primary"]};
+                    border: 2px solid {colors["text_primary"]};
+                    border-radius: 6px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background-color: {colors["button_hover"]};
+                    color: {section_color};
+                    border: 2px solid {section_color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {colors["border"]};
+                }}
+            """)
 
         if is_tm:
             buy_button.clicked.connect(
@@ -418,13 +444,11 @@ class PokemonShopManager:
 
     def get_daily_items(self):
         """Generate daily items based on the current date."""
-        if os.path.isfile(self.shop_save_file):
-            with open(self.shop_save_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if data.get("items") and data.get("date") == datetime.now().strftime(
-                    "%Y-%m-%d"
-                ):
-                    return data.get("items")
+        db = mw.ankimon_db
+        shop_data = db.get_user_data("todays_shop")
+        if shop_data:
+            if shop_data.get("items") and shop_data.get("date") == datetime.now().strftime("%Y-%m-%d"):
+                return shop_data.get("items")
 
         seed = datetime.now().strftime("%Y-%m-%d")
         random.seed(seed)
@@ -432,13 +456,11 @@ class PokemonShopManager:
 
     def get_daily_tms(self):
         """Works like get_daily_items, but for TMs"""
-        if os.path.isfile(self.shop_save_file):
-            with open(self.shop_save_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if data.get("technical_machines") and data.get(
-                    "date"
-                ) == datetime.now().strftime("%Y-%m-%d"):
-                    return data.get("technical_machines")
+        db = mw.ankimon_db
+        shop_data = db.get_user_data("todays_shop")
+        if shop_data:
+            if shop_data.get("technical_machines") and shop_data.get("date") == datetime.now().strftime("%Y-%m-%d"):
+                return shop_data.get("technical_machines")
 
         tm_pool = self.get_tm_pool()
         seed = datetime.now().strftime("%Y-%m-%d")
@@ -568,13 +590,12 @@ class PokemonShopManager:
         )
 
         # SAVE IMMEDIATELY - before GUI refresh
-        with open(self.shop_save_file, "w", encoding="utf-8") as f:
-            data = {
-                "items": self.todays_daily_items,
-                "technical_machines": self.todays_daily_tms,
-                "date": datetime.now().strftime("%Y-%m-%d"),
-            }
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        data = {
+            "items": self.todays_daily_items,
+            "technical_machines": self.todays_daily_tms,
+            "date": datetime.now().strftime("%Y-%m-%d"),
+        }
+        mw.ankimon_db.set_user_data("todays_shop", data)
 
         # Now refresh the window - it will load from the updated JSON file
         self.toggle_window()

@@ -39,7 +39,7 @@ from ..functions.pokedex_functions import (
     find_details_move
 )
 
-from ..resources import mypokemon_path, icon_path, items_path, itembag_path, csv_file_items_cost, poke_evo_path
+from ..resources import icon_path, items_path, csv_file_items_cost, poke_evo_path
 from ..functions.badges_functions import check_for_badge, receive_badge
 from ..functions.pokemon_functions import save_fossil_pokemon
 from ..utils import play_effect_sound
@@ -55,13 +55,11 @@ class ItemWindow(QWidget):
             settings_obj: Settings,
             main_pokemon: PokemonObject,
             enemy_pokemon: PokemonObject,
-            itembagpath: Path,
             achievements: dict[str, bool],
             starter_window: StarterWindow,
-            evo_window: EvoWindow
+            evo_window: EvoWindow,
             ):
         super().__init__()
-        self.itembag_path: Path = itembagpath
         self.logger: ShowInfoLogger = logger
         self.settings_obj: Settings = settings_obj
         self.main_pokemon: PokemonObject = main_pokemon
@@ -201,7 +199,7 @@ class ItemWindow(QWidget):
             self.contentLayout.addWidget(empty_label, 1, 1)
         else:
             for item in itembag_list:
-                item_widget = self.ItemLabel(item["item"], item["quantity"], item.get("type"))
+                item_widget = self.ItemLabel(item["item"], item["quantity"], item["type"])
                 # FIX 4: Set consistent size policy for all item widgets
                 item_widget.setMinimumWidth(180)  # Ensure minimum width for each item
                 self.contentLayout.addWidget(item_widget, row, col)
@@ -276,21 +274,16 @@ class ItemWindow(QWidget):
     def give_held_item(self, comboBox, item_name):
         individual_id = comboBox.itemData(comboBox.currentIndex(), role=UserRole)
         try:
-             with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-                pokemon_list_data = json.load(json_file)
-                target_pokemon_data = None
-                for pokemon in pokemon_list_data:
-                    if pokemon.get('individual_id') == individual_id:
-                        target_pokemon_data = pokemon
-                        break
-                
-                if target_pokemon_data:
-                    pokemon_obj = PokemonObject.from_dict(target_pokemon_data)
-                    pokemon_obj.give_held_item(item_name)
-                    self.logger.log_and_showinfo("info", f"{item_name} was given to {target_pokemon_data.get('name')}.")
-                    self.renewWidgets()
-                else:
-                    self.logger.log_and_showinfo("error", "Could not find Pokemon data.")
+            db = mw.ankimon_db
+            target_pokemon_data = db.get_pokemon(individual_id)
+            
+            if target_pokemon_data:
+                pokemon_obj = PokemonObject.from_dict(target_pokemon_data)
+                pokemon_obj.give_held_item(item_name)
+                self.logger.log_and_showinfo("info", f"{item_name} was given to {target_pokemon_data.get('name')}.")
+                self.renewWidgets()
+            else:
+                self.logger.log_and_showinfo("error", "Could not find Pokemon data.")
 
         except Exception as e:
             self.logger.log_and_showinfo("error", f"Error giving item: {e}")
@@ -391,21 +384,21 @@ class ItemWindow(QWidget):
 
     def PokemonList(self, comboBox):
         try:
-            with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-                captured_pokemon_data = json.load(json_file)
-                if captured_pokemon_data:
-                    for pokemon in captured_pokemon_data:
-                        pokemon_name = pokemon['name']
-                        individual_id = pokemon.get('individual_id', None)
-                        id_ = pokemon.get('id', None)
-                        if individual_id and id_:  # Ensure the ID exists
-                            # Add Pokémon name to comboBox
-                            comboBox.addItem(pokemon_name)
-                            # Store both individual_id and id as separate data using roles
-                            comboBox.setItemData(comboBox.count() - 1, individual_id, role=UserRole)
-                            comboBox.setItemData(comboBox.count() - 1, id_, role=UserRole + 1)
+            db = mw.ankimon_db
+            pokemon_list = db.execute("SELECT name, individual_id, pokedex_id FROM captured_pokemon").fetchall()
+            if pokemon_list:
+                for pokemon in pokemon_list:
+                    pokemon_name = pokemon[0]
+                    individual_id = pokemon[1]
+                    id_ = pokemon[2]
+                    if individual_id and id_:  # Ensure the ID exists
+                        # Add Pokémon name to comboBox
+                        comboBox.addItem(pokemon_name)
+                        # Store both individual_id and id as separate data using roles
+                        comboBox.setItemData(comboBox.count() - 1, individual_id, role=UserRole)
+                        comboBox.setItemData(comboBox.count() - 1, id_, role=UserRole + 1)
         except Exception as e:
-            self.logger.log_and_showinfo("error", f"Error loading Pokémon list: {e}")
+            self.logger.log_and_showinfo("error", f"Error loading Pokémon list: {e} {pokemon}")
 
     def Evolve_Fossil(self, item_name: str, fossil_id: int, fossil_poke_name: str):
         self.starter_window.display_fossil_pokemon(fossil_id, fossil_poke_name)
@@ -450,18 +443,8 @@ class ItemWindow(QWidget):
             self.logger.log_and_showinfo("error", f"{item_name} is not a valid Poké Ball!")
 
     def delete_item(self, item_name: str):
-        itembag_list = self.read_items_file()
-        for item in itembag_list:
-            # Check if the item exists and if the name matches
-            if item['item'] == item_name:
-                # Decrease the quantity by 1
-                item['quantity'] -= 1
-
-                # If quantity reaches 0, remove the item from the list
-                if item['quantity'] == 0:
-                    itembag_list.remove(item)
-
-        self.write_items_file(itembag_list)
+        # Update database directly for performance
+        mw.ankimon_db.update_item_quantity(item_name, -1)
         self.renewWidgets()
 
     def Check_Heal_Item(self, prevo_name: str, heal_points: int, item_name: str, achievements):
@@ -511,53 +494,62 @@ class ItemWindow(QWidget):
             self.logger.log_and_showinfo("error", f"Error loading evolution items: {e}")
 
     def write_items_file(self, itembag_list: list[Any]):
-        with open(itembag_path, 'w') as json_file:
-            json.dump(itembag_list, json_file)
+        """Writes items to the database. Legacy method kept for compatibility."""
+        db = mw.ankimon_db
+        for item in itembag_list:
+            item_id = item.get("id")
+            item_name = item.get("item") or item.get("item_name", "")
+            quantity = item.get("quantity", 1)
+            # Pass cached metadata back to database
+            db.save_item(
+                item_id, 
+                item_name, 
+                quantity, 
+                extra_data=item, 
+                category_id=item.get("category_id"),
+                cost=item.get("cost"),
+                fling_power=item.get("fling_power"),
+                fling_effect_id=item.get("fling_effect_id")
+            )
 
     def read_items_file(self):
         """
-        Reads the list from the JSON file. If the file contains malformed items,
-        it tries to fix them by converting strings to the correct structure.
+        Reads the item list from the database.
+        Returns items in the expected format for the UI, using SQL columns for efficiency.
         """
         try:
-            with open(self.itembag_path, "r", encoding="utf-8") as json_file:
-                return json.load(json_file)
-        except json.JSONDecodeError:
-            self.logger.log("error", "Malformed JSON detected. Attempting to fix.")
-            itembag_list = self._fix_and_load_items()
-            self.write_items_file(itembag_list)
-            return itembag_list
-
-    def _fix_and_load_items(self):
-        """
-        Attempts to fix and load malformed JSON items.
-        Reads the JSON file as a string and corrects malformed items.
-        """
-        try:
-            with open(self.itembag_path, "r", encoding="utf-8") as json_file:
-                raw_data = json_file.read()
-
-            # Parse raw data as JSON (handling malformed structures)
-            corrected_items = []
-            json_data = raw_data.strip().lstrip("[").rstrip("]").split("},")
-            for entry in json_data:
-                entry = entry.strip()
-                if not entry.endswith("}"):
-                    entry += "}"
-
-                try:
-                    item = json.loads(entry)
-                    corrected_items.append(item)
-                except json.JSONDecodeError:
-                    # Fix malformed item (assume it's missing proper structure)
-                    if entry.startswith('{"') and entry.endswith('"}'):
-                        item_name = entry[2:-2]  # Extract item name
-                        corrected_items.append({"item": item_name, "quantity": 1})
-                        self.logger.log("info", f"Fixed malformed item: {item_name}")
-                    else:
-                        self.logger.log("warning", f"Skipping unknown item format: {entry}")
-
-            return corrected_items
+            db = mw.ankimon_db
+            items = db.get_all_items()
+            # Convert database format to UI format
+            result = []
+            for item in items:
+                # Prioritize SQL columns over JSON blob
+                cat_id = item.get("category_id")
+                item_type = "TM" if cat_id == 37 else None
+                
+                # Combine database columns into the UI dictionary (preserving extra_data for legacy)
+                item_dict = {
+                    "id": item.get("id"),
+                    "item": item.get("item_name"),
+                    "quantity": item.get("quantity", 1),
+                    "type": item_type,
+                    "category_id": cat_id,
+                    "cost": item.get("cost"),
+                    "fling_power": item.get("fling_power"),
+                    "fling_effect_id": item.get("fling_effect_id")
+                }
+                
+                # Merge with any existing extra_data for backward compatibility
+                if item.get("extra_data"):
+                    for k, v in item["extra_data"].items():
+                        if k not in item_dict:
+                            item_dict[k] = v
+                            
+                result.append(item_dict)
+            return result
+        except Exception as e:
+            self.logger.log("error", f"Error reading items from database: {e}")
+            return []
 
         except Exception as e:
             self.logger.log("error", f"Error fixing and loading items: {e}")
