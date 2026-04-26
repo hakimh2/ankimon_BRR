@@ -824,50 +824,12 @@ create_menu_actions(
 # https://archive.org/details/pokemon-dp-sound-library-disc-2_202205
 # https://www.sounds-resource.com/nintendo_switch/pokemonswordshield/
 
-# Define lists to hold hook functions
-catch_pokemon_hooks = []
-defeat_pokemon_hooks = []
-
-
-# Function to add hooks to catch_pokemon event
-def add_catch_pokemon_hook(func):
-    catch_pokemon_hooks.append(func)
-
-
-# Function to add hooks to defeat_pokemon event
-def add_defeat_pokemon_hook(func):
-    defeat_pokemon_hooks.append(func)
-
-
-# Custom function that triggers the catch_pokemon hook
-def CatchPokemonHook():
-    if enemy_pokemon.hp < 1:
-        catch_pokemon(
-            enemy_pokemon,
-            ankimon_tracker_obj,
-            logger,
-            "",
-            collected_pokemon_ids,
-            achievements,
-        )
-        new_pokemon(
-            enemy_pokemon, test_window, ankimon_tracker_obj, reviewer_obj
-        )  # Show a new random Pokémon
-    for hook in catch_pokemon_hooks:
-        hook()
-
-
-# Custom function that triggers the defeat_pokemon hook
-def DefeatPokemonHook():
-    if enemy_pokemon.hp < 1:
-        kill_pokemon(
-            main_pokemon, enemy_pokemon, evo_window, logger, achievements, trainer_card
-        )
-        new_pokemon(
-            enemy_pokemon, test_window, ankimon_tracker_obj, reviewer_obj
-        )  # Show a new random Pokémon
-    for hook in defeat_pokemon_hooks:
-        hook()
+from .hook_registry import (
+    CatchPokemonHook,
+    DefeatPokemonHook,
+    add_catch_pokemon_hook,
+    add_defeat_pokemon_hook,
+)
 
 
 def on_profile_did_open():
@@ -926,7 +888,7 @@ def on_profile_did_open():
 # Hook to expose the function
 def on_profile_loaded():
     mw.defeatpokemon = DefeatPokemonHook
-    mw.catchpokemon = CatchPokemonHook
+    mw.catchpokemon = lambda: CatchPokemonHook(collected_pokemon_ids)
     mw.add_catch_pokemon_hook = add_catch_pokemon_hook
     mw.add_defeat_pokemon_hook = add_defeat_pokemon_hook
 
