@@ -714,7 +714,7 @@ def save_caught_pokemon(
     caught_pokemon = enemy_pokemon.to_dict()
     caught_pokemon.update({
         "name": enemy_pokemon.name.capitalize(),
-        "nickname": "",
+        "nickname": nickname or "",
         "ev": {"hp": 0, "atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0},
         "friendship": 0,
         "pokemon_defeated": 0,
@@ -753,8 +753,8 @@ def catch_pokemon(
             return
 
     # If we arrive here, this means that ankimon_tracker_obj.caught == 1
-    if nickname is not None or not nickname:
-        nickname = enemy_pokemon.name
+    if not nickname:
+        nickname = enemy_pokemon.name.capitalize()
     if collected_pokemon_ids is not None:
         collected_pokemon_ids.add(enemy_pokemon.id)  # Update cache
     save_caught_pokemon(enemy_pokemon, nickname, achievements)
