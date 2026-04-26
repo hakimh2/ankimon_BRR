@@ -3,6 +3,7 @@ import random
 import json
 import uuid
 
+from aqt import mw
 from aqt.utils import showWarning
 from aqt.qt import (
     QFont,
@@ -34,7 +35,7 @@ from ..functions.battle_functions import calculate_hp
 from ..functions.pokedex_functions import get_base_experience, get_growth_rate, search_pokedex
 from ..functions.pokemon_functions import get_random_moves_for_pokemon, pick_random_gender
 from ..utils import load_custom_font, close_anki
-from ..resources import addon_dir, frontdefault, mainpokemon_path, mypokemon_path
+from ..resources import addon_dir, frontdefault
 from ..const import total_generations
 from .error_handler import show_warning_with_traceback
 
@@ -145,23 +146,13 @@ class StarterWindow(QWidget):
             tier="Starter",
         )
 
-        # Load existing Pokémon data if it exists
-        if mypokemon_path.is_file():
-            with open(mypokemon_path, "r", encoding="utf-8") as json_file:
-                caught_pokemon_data = json.load(json_file)
-        else:
-            caught_pokemon_data = []
+        # Load existing Pokémon data from database
+        db = mw.ankimon_db
+        caught_pokemon_data = main_pokemon.to_dict()
 
-        # Append the caught Pokémon's data to the list
-        caught_pokemon_data.append(main_pokemon.to_dict())
-
-        # Save to mainpokemon
-        with open(mainpokemon_path, "w") as json_file:
-            json.dump(caught_pokemon_data, json_file, indent=2)
-
-        # Save to mypokemon
-        with open(mypokemon_path, "w") as json_file:
-            json.dump(caught_pokemon_data, json_file, indent=2)
+        # Save to database - both as captured pokemon and main pokemon
+        db.save_pokemon(caught_pokemon_data)
+        db.save_main_pokemon(main_pokemon.to_dict())
 
         self.logger.log_and_showinfo("info",f"{name.capitalize()} has been chosen as Starter Pokemon !")
 
