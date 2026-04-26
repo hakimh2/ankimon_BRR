@@ -839,48 +839,9 @@ gui_hooks.profile_did_open.append(on_profile_did_open)
 gui_hooks.profile_will_close.append(backup_manager.on_anki_close)
 
 
-def catch_shortcut_function():
-    if enemy_pokemon.hp < 1:
-        catch_pokemon(
-            enemy_pokemon,
-            ankimon_tracker_obj,
-            logger,
-            "",
-            collected_pokemon_ids,
-            achievements,
-        )
-        new_pokemon(
-            enemy_pokemon, test_window, ankimon_tracker_obj, reviewer_obj
-        )  # Show a new random Pokémon
-    else:
-        tooltip("You only catch a pokemon once it's fainted!")
-
-
-def defeat_shortcut_function():
-    if enemy_pokemon.hp < 1:
-        kill_pokemon(
-            main_pokemon, enemy_pokemon, evo_window, logger, achievements, trainer_card
-        )
-        new_pokemon(
-            enemy_pokemon, test_window, ankimon_tracker_obj, reviewer_obj
-        )  # Show a new random Pokémon
-    else:
-        tooltip("Wild pokemon has to be fainted to defeat it!")
-
-
-catch_shortcut = str(catch_shortcut).lower()
-defeat_shortcut = str(defeat_shortcut).lower()
-
-
-# // adding shortcuts to _shortcutKeys function in anki
-def _shortcutKeys_wrap(self, _old):
-    original = _old(self)
-    original.append((catch_shortcut, lambda: catch_shortcut_function()))
-    original.append((defeat_shortcut, lambda: defeat_shortcut_function()))
-    return original
-
-
-Reviewer._shortcutKeys = wrap(Reviewer._shortcutKeys, _shortcutKeys_wrap, "around")
+from .reviewer_ui import setup_reviewer_ui, set_collected_ids, catch_shortcut_function, defeat_shortcut_function
+set_collected_ids(collected_pokemon_ids)
+setup_reviewer_ui(catch_shortcut, defeat_shortcut, reviewer_buttons)
 
 
 def _get_cards_per_round() -> int:
@@ -889,53 +850,14 @@ def _get_cards_per_round() -> int:
     if isinstance(cards_per_round, int):
         return cards_per_round
 
-    # If it's a string in "number-number" format, return random value between bounds
     if isinstance(cards_per_round, str) and "-" in cards_per_round:
         try:
             min_val, max_val = map(int, cards_per_round.split("-"))
-            random_value = random.randint(min_val, max_val)
-            return random_value
-        except (ValueError, IndexError) as e:
+            return random.randint(min_val, max_val)
+        except (ValueError, IndexError):
             return 2
 
     return 2
-
-
-if reviewer_buttons is True:
-    # // Choosing styling for review other buttons in reviewer bottombar based on chosen style
-    Review_linkHandelr_Original = Reviewer._linkHandler
-
-    # Define the HTML and styling for the custom button
-    def custom_button():
-        return f"""<button title="Shortcut key: C" onclick="pycmd('catch');" {button_style}>Catch</button>"""
-
-    # Update the link handler function to handle the custom button action
-    def linkHandler_wrap(reviewer, url):
-        if url == "catch":
-            catch_shortcut_function()
-        elif url == "defeat":
-            defeat_shortcut_function()
-        else:
-            Review_linkHandelr_Original(reviewer, url)
-
-    def _bottomHTML(self) -> str:
-        return _bottomHTML_template % dict(
-            edit=tr.studying_edit(),
-            editkey=tr.actions_shortcut_key(val="E"),
-            more=tr.studying_more(),
-            morekey=tr.actions_shortcut_key(val="M"),
-            downArrow=downArrow(),
-            time=self.card.time_taken() // 1000,
-            CatchKey=tr.actions_shortcut_key(val=f"{catch_shortcut}"),
-            DefeatKey=tr.actions_shortcut_key(val=f"{defeat_shortcut}"),
-        )
-
-    # Replace the current HTML with the updated HTML
-    Reviewer._bottomHTML = (
-        _bottomHTML  # Assuming you have access to self in this context
-    )
-    # Replace the original link handler function with the modified one
-    Reviewer._linkHandler = linkHandler_wrap
 
 if settings_obj.get("misc.discord_rich_presence") == True:
     client_id = "1319014423876075541"  # Replace with your actual client ID
