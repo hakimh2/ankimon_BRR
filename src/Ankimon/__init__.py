@@ -287,69 +287,8 @@ setupHooks(None, ankimon_tracker_obj)
 
 online_connectivity = test_online_connectivity()
 
-# Connect to GitHub and Check for Notification and HelpGuideChanges
-update_infos_md = addon_dir / "updateinfos.md"
-
-
-def download_changelog():
-    try:
-        # URL of the file on GitHub
-        github_url = f"https://raw.githubusercontent.com/h0tp-ftw/ankimon/refs/heads/main/assets/changelogs/{addon_ver}.md"
-
-        # Read content from GitHub
-        github_content = read_github_file(github_url)
-
-        # If changelog content is None, try unknown.md as a fallback for all builds
-        if github_content is None:
-            github_url = "https://raw.githubusercontent.com/h0tp-ftw/ankimon/refs/heads/main/assets/changelogs/unknown.md"
-            github_content = read_github_file(github_url)
-
-        return github_content
-    except Exception as e:
-        return e
-
-
-if online_connectivity and ssh:
-
-    def done(result: Union[Exception, str, None]):
-        if isinstance(result, Exception):
-            show_warning_with_traceback(
-                parent=mw, exception=result, message="Error connecting to GitHub:"
-            )
-            return
-        if result is None:
-            showWarning("Failed to retrieve Ankimon content from GitHub.")
-            return
-        # Read content from the local file
-        local_content = read_local_file(update_infos_md)
-        # If local content is not the same as the GitHub content, open dialog
-        if not compare_files(local_content, result):
-            write_local_file(update_infos_md, result)
-            dialog = UpdateNotificationWindow(markdown.markdown(result))
-            if not no_more_news:
-                dialog.exec()
-
-    op = (
-        QueryOp(
-            parent=mw,
-            op=lambda _col: download_changelog(),  # Background operation
-            success=done,  # Ran on UI thread
-        )
-        .without_collection()
-        .run_in_background()
-    )
-
-
-def open_help_window(online_connectivity):
-    try:
-        # TODO: online_connectivity must be a function?
-        # TODO: HelpWindow constructor must be empty?
-        help_dialog = HelpWindow(online_connectivity)
-        help_dialog.exec()
-    except Exception as e:
-        show_warning_with_traceback(
-            parent=mw, exception=e, message="Error in opening Help Guide:"
-        )
+from .changelog import check_and_show_changelog, open_help_window
+check_and_show_changelog(online_connectivity, ssh, no_more_news)
 
 
 def answerCard_before(filter, reviewer, card):
