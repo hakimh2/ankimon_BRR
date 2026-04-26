@@ -42,6 +42,7 @@ from ..pyobj.settings import Settings
 from ..functions.sprite_functions import get_sprite_path
 from ..utils import load_custom_font, get_tier_by_id
 from ..resources import icon_path, items_path, csv_file_items_cost, poke_evo_path
+from ..business import calculate_cp_from_dict
 
 
 def format_item_name(item_name: str) -> str:
