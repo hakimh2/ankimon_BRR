@@ -378,31 +378,58 @@ class PokemonShopManager:
         layout.addLayout(info_layout)
         layout.addStretch()
 
+        # Check inventory for owned status
+        owned_quantity = 0
+        try:
+            db_item = mw.ankimon_db.get_item(item["name"])
+            if db_item:
+                owned_quantity = db_item.get("quantity", 0)
+        except Exception:
+            pass
+
+        button_text = "BUY"
+        if is_tm and owned_quantity > 0:
+            button_text = "OWNED"
+        elif not is_tm and owned_quantity > 0:
+            button_text = f"BUY (x{owned_quantity})"
+
         # Buy button with theme-aware styling
-        buy_button = QPushButton("BUY")
+        buy_button = QPushButton(button_text)
         buy_font = QFont(self.early_gameboy_font)
         buy_font.setPointSize(8)
         buy_button.setFont(buy_font)
         buy_button.setFixedHeight(35)
-        buy_button.setFixedWidth(buy_button.sizeHint().width())
+        buy_button.setFixedWidth(buy_button.fontMetrics().boundingRect(button_text).width() + 20)
 
-        buy_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {section_color};
-                color: {colors["text_primary"]};
-                border: 2px solid {colors["text_primary"]};
-                border-radius: 6px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: {colors["button_hover"]};
-                color: {section_color};
-                border: 2px solid {section_color};
-            }}
-            QPushButton:pressed {{
-                background-color: {colors["border"]};
-            }}
-        """)
+        if is_tm and owned_quantity > 0:
+            buy_button.setEnabled(False)
+            buy_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {colors["frame_bg"]};
+                    color: {colors["text_secondary"]};
+                    border: 2px solid {colors["border"]};
+                    border-radius: 6px;
+                    font-weight: bold;
+                }}
+            """)
+        else:
+            buy_button.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {section_color};
+                    color: {colors["text_primary"]};
+                    border: 2px solid {colors["text_primary"]};
+                    border-radius: 6px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background-color: {colors["button_hover"]};
+                    color: {section_color};
+                    border: 2px solid {section_color};
+                }}
+                QPushButton:pressed {{
+                    background-color: {colors["border"]};
+                }}
+            """)
 
         if is_tm:
             buy_button.clicked.connect(
