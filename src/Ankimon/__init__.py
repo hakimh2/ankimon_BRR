@@ -771,72 +771,16 @@ from .hook_registry import (
 )
 
 
-def on_profile_did_open():
-    """Initialize services after profile is loaded."""
-
-    # Show tip of the day
-    try:
-        show_tip_of_the_day()
-    except Exception as e:
-        show_warning_with_traceback(
-            parent=mw, exception=e, message="Error showing tip of the day:"
-        )
-
-    # Award monthly pokemon if applicable
-    try:
-        if online_connectivity:
-            check_and_award_monthly_pokemon(logger)
-        else:
-            logger.log(
-                "info",
-                "Skipping monthly pokemon check due to no internet connectivity.",
-            )
-    except Exception as e:
-        show_warning_with_traceback(
-            parent=mw, exception=e, message="Error awarding monthly pokemon:"
-        )
-
-    # AnkiWeb Sync
-    try:
-        ankiweb_sync = settings_obj.get("misc.ankiweb_sync")
-        if not ankiweb_sync:
-            logger.log(
-                "info",
-                "AnkiWeb sync is disabled in settings - skipping sync system initialization",
-            )
-            return
-
-        # Set up sync hooks now that profile is available
-        setup_ankimon_sync_hooks(settings_obj, logger)
-
-        if not online_connectivity:
-            logger.log(
-                "info", "No connection - AnkiWeb sync is disabled for this session"
-            )
-        else:  # if enabled and internet is available
-            # Check for sync conflicts and show dialog if needed
-            global sync_dialog
-            sync_dialog = check_and_sync_pokemon_data(settings_obj, logger)
-            logger.log("info", "Ankimon sync system initialized successfully")
-    except Exception as e:
-        show_warning_with_traceback(
-            parent=mw, exception=e, message="Error setting up sync system:"
-        )
-
-
-# Hook to expose the function
-def on_profile_loaded():
-    mw.defeatpokemon = DefeatPokemonHook
-    mw.catchpokemon = lambda: CatchPokemonHook(collected_pokemon_ids)
-    mw.add_catch_pokemon_hook = add_catch_pokemon_hook
-    mw.add_defeat_pokemon_hook = add_defeat_pokemon_hook
-
-
-# Add hook to run on profile load
-addHook("profileLoaded", on_profile_loaded)
-
-gui_hooks.profile_did_open.append(on_profile_did_open)
-gui_hooks.profile_will_close.append(backup_manager.on_anki_close)
+from .profile_hooks import register_profile_hooks
+register_profile_hooks(
+    online_connectivity,
+    backup_manager,
+    CatchPokemonHook,
+    DefeatPokemonHook,
+    add_catch_pokemon_hook,
+    add_defeat_pokemon_hook,
+    collected_pokemon_ids,
+)
 
 
 from .reviewer_ui import setup_reviewer_ui, set_collected_ids, catch_shortcut_function, defeat_shortcut_function
