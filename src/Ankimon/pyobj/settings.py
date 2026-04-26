@@ -177,6 +177,8 @@ class Settings:
                 except Exception as e:
                     print(f"Ankimon: Failed to save config to database: {e}")
 
+        self.config = config
+        self.compute_gui_config()
 
     def get(self, key, default=None):
         return self.config.get(key, default)
@@ -184,7 +186,6 @@ class Settings:
     def set(self, key, value):
         self.config[key] = value
         self.save_config(self.config)
-        self.load_config()
 
     def compute_gui_config(self):
         # Manage conditional GUI settings
