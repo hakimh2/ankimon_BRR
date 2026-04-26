@@ -19,20 +19,12 @@ except ModuleNotFoundError:
 
 import json
 import random
-import copy
-from typing import Union
 
 import aqt
-from anki.hooks import addHook, wrap
 from aqt import gui_hooks, mw, utils
-from aqt.qt import QDialog
-from aqt.operations import QueryOp
-from aqt.reviewer import Reviewer
-from aqt.utils import downArrow, showWarning, tr, tooltip
-from PyQt6.QtWidgets import QDialog
+from aqt.utils import tooltip
 from aqt.gui_hooks import webview_will_set_content
 from aqt.webview import WebContent
-import markdown
 
 from .resources import ensure_ankimon_infrastructure, user_path, IS_EXPERIMENTAL_BUILD, addon_ver, addon_dir
 ensure_ankimon_infrastructure(addon_dir, user_path)
@@ -61,19 +53,11 @@ from .resources import (
 )
 from .menu_buttons import create_menu_actions
 from .hooks import setupHooks
-from .texts import _bottomHTML_template, button_style
 from .utils import (
     check_folders_exist,
-    safe_get_random_move,
     test_online_connectivity,
-    read_local_file,
-    read_github_file,
-    compare_files,
-    write_local_file,
     count_items_and_rewrite,
-    play_effect_sound,
     get_main_pokemon_data,
-    play_sound,
     load_collected_pokemon_ids,
 )
 from .functions.url_functions import (
@@ -83,37 +67,18 @@ from .functions.url_functions import (
     join_discord_url,
     open_leaderboard_url,
 )
-from .functions.badges_functions import (
-    get_achieved_badges,
-    handle_review_count_achievement,
-    check_for_badge,
-    receive_badge,
-)
+from .functions.badges_functions import get_achieved_badges
 from .functions.pokemon_showdown_functions import (
     export_to_pkmn_showdown,
     export_all_pkmn_showdown,
     flex_pokemon_collection,
 )
-from .functions.drawing_utils import tooltipWithColour
-from .functions.discord_function import DiscordPresence
 from .functions.rate_addon_functions import rate_this_addon
-from .functions.encounter_functions import (
-    generate_random_pokemon,
-    new_pokemon,
-    catch_pokemon,
-    kill_pokemon,
-    handle_enemy_faint,
-    handle_main_pokemon_faint,
-)
-from .gui_entities import UpdateNotificationWindow, CheckFiles
+from .functions.encounter_functions import generate_random_pokemon
+from .gui_entities import CheckFiles
 from .pyobj.download_sprites import show_agreement_and_download_dialog
-from .pyobj.help_window import HelpWindow
 from .pyobj.backup_files import run_backup
 from .pyobj.backup_manager import BackupManager
-from .pyobj.ankimon_sync import setup_ankimon_sync_hooks, check_and_sync_pokemon_data
-from .pyobj.tip_of_the_day import show_tip_of_the_day
-from .classes.choose_move_dialog import MoveSelectionDialog
-from .poke_engine.ankimon_hooks_to_poke_engine import simulate_battle_with_poke_engine
 from .singletons import (
     reviewer_obj,
     logger,
@@ -122,7 +87,6 @@ from .singletons import (
     translator,
     main_pokemon,
     enemy_pokemon,
-    trainer_card,
     ankimon_tracker_obj,
     test_window,
     achievement_bag,
@@ -140,14 +104,7 @@ from .singletons import (
     achievements,
     pokemon_pc,
     ankimon_db,
-)
-
-from .pyobj.pokemon_trade import check_and_award_monthly_pokemon
-
-from .functions.battle_functions import (
-    update_pokemon_battle_status,
-    validate_pokemon_status,
-    process_battle_data,
+    trainer_card,
 )
 
 from .pyobj.error_handler import show_warning_with_traceback
