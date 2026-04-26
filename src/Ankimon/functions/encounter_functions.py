@@ -39,7 +39,7 @@ from ..functions.trainer_functions import xp_share_gain_exp
 from ..functions.badges_functions import check_for_badge, receive_badge
 from ..functions.drawing_utils import tooltipWithColour
 from ..utils import limit_ev_yield, play_effect_sound, get_ev_spread
-from ..business import calc_experience
+from ..business import calc_experience, calculate_cp_from_dict
 from ..const import gen_ids
 from ..singletons import (
     main_pokemon,
@@ -90,7 +90,7 @@ def modify_percentages(total_reviews, daily_average, trainer_level):
             if main_pokemon.level < level_thresholds.get(tier, float("inf")):
                 percentages[tier] = 0  # Set percentage to 0 if the level requirement isn't met
 
-    # Example modification based on player level
+    # Example modification based on trainer level
     if trainer_level:
         adjustment = 5  # Adjustment value for the example
         if trainer_level > 10:
@@ -132,7 +132,7 @@ def get_random_pokemon_in_tier(tier):
 
 def get_tier(total_reviews, trainer_level=1, event_modifier=None):
     """_summary_
-    Randomly picks the tier for a new enemy Pokemon to be generated from, based on weighted probabilities based on number of reviews and player level.
+    Randomly picks the tier for a new enemy Pokemon to be generated from, based on weighted probabilities based on number of reviews and trainer level.
 
     Args:
         total_reviews (int): Number of reviews done in that Anki session.
@@ -577,7 +577,18 @@ def save_main_pokemon_progress(
         mainpkmndata["ev"]["spa"] += ev_yield["special-attack"]
         mainpkmndata["ev"]["spd"] += ev_yield["special-defense"]
         mainpkmndata["ev"]["spe"] += ev_yield["speed"]
-        mainpkmndata["current_hp"] = int(main_pokemon.current_hp)
+        # Mirror EV gain onto the in-memory object so CP/stats reads
+        # stay consistent with the persisted dict until next restart.
+        # Dict-item mutation doesn't fire __setattr__, so invalidate
+        # the CP cache explicitly.
+        main_pokemon.ev["hp"] += ev_yield["hp"]
+        main_pokemon.ev["atk"] += ev_yield["attack"]
+        main_pokemon.ev["def"] += ev_yield["defense"]
+        main_pokemon.ev["spa"] += ev_yield["special-attack"]
+        main_pokemon.ev["spd"] += ev_yield["special-defense"]
+        main_pokemon.ev["spe"] += ev_yield["speed"]
+        main_pokemon.invalidate_cp_cache()
+        mainpkmndata["current_hp"] = int(main_pokemon.hp)
         main_pokemon.friendship += random.randint(5, 9)
         if main_pokemon.friendship > 255:
             main_pokemon.friendship = 255
@@ -696,34 +707,30 @@ def save_caught_pokemon(
 
     # enemy_pokemon.stats["xp"] = 0
     enemy_pokemon.xp = 0
-    caught_pokemon = {
+    # Use to_dict() so the caught record shares the canonical shape with
+    # saved main Pokemon (includes base_stats, level-scaled stats, cp,
+    # nature). Then override caught-only fields.
+    _max_hp = enemy_pokemon.calculate_max_hp()
+    caught_pokemon = enemy_pokemon.to_dict()
+    caught_pokemon.update({
         "name": enemy_pokemon.name.capitalize(),
         "nickname": "",
-        "level": enemy_pokemon.level,
-        "gender": enemy_pokemon.gender,
-        "id": enemy_pokemon.id,
-        "ability": enemy_pokemon.ability,
-        "type": enemy_pokemon.type,
-        "stats": enemy_pokemon.base_stats,
         "ev": {"hp": 0, "atk": 0, "def": 0, "spa": 0, "spd": 0, "spe": 0},
-        "iv": enemy_pokemon.iv,
-        "attacks": enemy_pokemon.attacks,
-        "base_experience": enemy_pokemon.base_experience,
-        "current_hp": enemy_pokemon.calculate_max_hp(),
-        "growth_rate": enemy_pokemon.growth_rate,
         "friendship": 0,
         "pokemon_defeated": 0,
         "xp": 0,
         "everstone": False,
-        "shiny": enemy_pokemon.shiny,
         "captured_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "individual_id": str(uuid.uuid4()),
         "mega": False,
         "special_form": None,
-        "tier": enemy_pokemon.tier,
         "is_favorite": False,
         "held_item": None,
-    }
+        "hp": _max_hp,
+        "current_hp": _max_hp,
+    })
+    # Recompute CP against the overridden (zeroed) EVs.
+    caught_pokemon["cp"] = calculate_cp_from_dict(caught_pokemon)
 
     # Save to database (replaces JSON file I/O for performance)
     ankimon_db.save_pokemon(caught_pokemon)

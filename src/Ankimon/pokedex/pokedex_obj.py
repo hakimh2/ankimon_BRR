@@ -57,21 +57,21 @@ class Pokedex(QDialog):
 
         # 1. Total caught count
         total_caught_count = db.get_pokemon_count()
-        
+
         # 2. Defeated count from captured pokemon
         cursor = db.execute("SELECT SUM(CAST(json_extract(data, '$.pokemon_defeated') AS INTEGER)) FROM captured_pokemon")
         defeated_caught = cursor.fetchone()[0] or 0
-        
+
         # 3. Shiny pokemon IDs
         cursor = db.execute("SELECT DISTINCT pokedex_id FROM captured_pokemon WHERE shiny = 1 AND pokedex_id IS NOT NULL")
         shiny_pokemon_ids = [row[0] for row in cursor.fetchall()]
-        
+
         # 4. Released count and defeated count from history
         cursor = db.execute("SELECT COUNT(*), SUM(CAST(json_extract(data, '$.pokemon_defeated') AS INTEGER)) FROM pokemon_history")
         row = cursor.fetchone()
         released_count = row[0] or 0
         defeated_released = row[1] or 0
-        
+
         defeated_count = defeated_caught + defeated_released
 
         file_path = os.path.join(self.addon_dir, "pokedex", "pokedex.html").replace("\\", "/")

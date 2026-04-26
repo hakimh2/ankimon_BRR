@@ -297,7 +297,7 @@ class EvoWindow(QWidget):
             if not pokemon:
                 self.logger.log("error", f"Could not find pokemon with id {individual_id}")
                 return
-            
+
             pokemon["name"] = evo_name.capitalize()
             pokemon["id"] = evo_id
             pokemon["type"] = search_pokedex(evo_name.lower(), "types")

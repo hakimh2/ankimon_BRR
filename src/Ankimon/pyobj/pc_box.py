@@ -479,6 +479,7 @@ class PokemonPC(QDialog):
         self.sort_by_id = QRadioButton("ID")
         self.sort_by_name = QRadioButton("Name")
         self.sort_by_level = QRadioButton("Level")
+        self.sort_by_cp = QRadioButton("CP")
         self.sort_by_iv = QRadioButton("IV")
         self.sort_by_ev = QRadioButton("EV")
         self.sort_by_date = QRadioButton("Date")
@@ -486,6 +487,7 @@ class PokemonPC(QDialog):
         self.sort_group.addButton(self.sort_by_id)
         self.sort_group.addButton(self.sort_by_name)
         self.sort_group.addButton(self.sort_by_level)
+        self.sort_group.addButton(self.sort_by_cp)
         self.sort_group.addButton(self.sort_by_iv)
         self.sort_group.addButton(self.sort_by_ev)
         self.sort_group.addButton(self.sort_by_date)
@@ -496,6 +498,8 @@ class PokemonPC(QDialog):
             self.sort_by_name.setChecked(True)
         elif self.selected_sort_key == "Level":
             self.sort_by_level.setChecked(True)
+        elif self.selected_sort_key == "CP":
+            self.sort_by_cp.setChecked(True)
         elif self.selected_sort_key == "IV":
             self.sort_by_iv.setChecked(True)
         elif self.selected_sort_key == "EV":
@@ -511,6 +515,7 @@ class PokemonPC(QDialog):
         sort_radio_layout.addWidget(self.sort_by_id)
         sort_radio_layout.addWidget(self.sort_by_name)
         sort_radio_layout.addWidget(self.sort_by_level)
+        sort_radio_layout.addWidget(self.sort_by_cp)
         sort_radio_layout.addWidget(self.sort_by_iv)
         sort_radio_layout.addWidget(self.sort_by_ev)
         sort_radio_layout.addWidget(self.sort_by_date)
@@ -1008,6 +1013,8 @@ class PokemonPC(QDialog):
             refresh_callback=self.refresh_gui,
             initial_tab_index=self.current_stats_tab_index,
             tab_changed_callback=self.on_stats_tab_changed,
+            nature=pokemon.get("nature", "serious"),
+            base_stats=pokemon.get("base_stats"),
         )
         self.refresh_gui()
 
@@ -1161,6 +1168,7 @@ class PokemonPC(QDialog):
             "tier",
             "is_favorite",
             "held_item",
+            "cp",
         }
 
         is_migration_needed = any(
@@ -1195,6 +1203,7 @@ class PokemonPC(QDialog):
             "tier": lambda p: get_tier_by_id(p.get("id", 0)) or "Normal",
             "is_favorite": False,
             "held_item": None,
+            "cp": lambda p: calculate_cp_from_dict(p),
         }
 
         for i, pokemon in enumerate(pokemon_list):

@@ -7,7 +7,7 @@ from datetime import datetime
 from aqt.utils import showWarning
 from aqt import mw
 
-from .pokedex_functions import get_base_experience, get_growth_rate, search_pokedex, search_pokedex_by_id, get_all_pokemon_moves
+from .pokedex_functions import get_base_experience, get_growth_rate, search_pokedex, search_pokedex_by_id
 from .battle_functions import calculate_hp
 from ..resources import (
     pokedex_path,
@@ -72,6 +72,9 @@ def find_experience_for_level(group_growth_rate, level, remove_levelcap=True):
     if level < 100:
         # Open the CSV file
         csv_file_path = str(next_lvl_file_path)  # Replace 'your_file_path.csv' with the actual path to your CSV file
+        # Default if no row matches or the growth_rate column is unknown —
+        # prevents UnboundLocalError from breaking the level-up path.
+        experience = 0
         with open(csv_file_path, 'r', encoding='utf-8') as file:
             # Create a CSV reader
             csv_reader = csv.DictReader(file, delimiter=';')
@@ -82,10 +85,10 @@ def find_experience_for_level(group_growth_rate, level, remove_levelcap=True):
             # Iterate through rows and find the experience for the specified growth rate and level
             for row in csv_reader:
                 if row[fieldnames[0]] == str(level):  # Use the first fieldname to access the 'Level' column
-                    experience = row[growth_rate]
+                    experience = row.get(growth_rate, 0)
                     break
 
-            return experience
+        return experience
     elif level > 99:
         if group_growth_rate == "erratic":
             if level + 1 < 50: # +1 was added to prevent -ve amounts of xp to come up (even though it wouldn't since the loop only takes in levels above 99)
@@ -159,71 +162,7 @@ def shiny_chance():
 #    }
 #    return caught_pokemon
 
-def get_random_moves_for_pokemon(pokemon_name, level):
-        """
-        Get up to 4 random moves learned by a Pokémon at a specific level and lower, along with the highest level,
-        excluding moves that can be learned at a higher level.
-
-        Args:
-            json_file_name (str): The name of the JSON file containing Pokémon learnset data.
-            pokemon_name (str): The name of the Pokémon.
-            level (int): The level at which to check for moves.
-
-        Returns:
-            list: A list of up to 4 random moves and their highest levels.
-        """
-        # Load the JSON file
-        with open(learnset_path, "r", encoding="utf-8") as file:
-            learnsets = json.load(file)
-
-        # Normalize the Pokémon name to lowercase for consistency
-        pokemon_name = pokemon_name.lower()
-
-        # Retrieve the learnset for the specified Pokémon
-        pokemon_learnset = learnsets.get(pokemon_name, {})
-
-        # Create a dictionary to store moves and their corresponding highest levels
-        moves_at_level_and_lower = {}
-
-        # Loop through the learnset dictionary
-        for move, levels in pokemon_learnset.get('learnset', {}).items():
-            highest_level = float('-inf')  # Initialize with negative infinity
-            eligible_moves = []  # Store moves eligible for inclusion
-
-            for move_level in levels:
-                # Check if the move_level string contains 'L'
-                if 'L' in move_level:
-                    # Extract the level from the move_level string
-                    move_level_int = int(move_level.split('L')[1])
-
-                    # Check if the move can be learned at the specified level or lower
-                    if move_level_int <= level:
-                        # Update the highest_level if a higher level is found
-                        highest_level = max(highest_level, move_level_int)
-                        eligible_moves.append(move)
-
-            # Check if the eligible moves can be learned at a higher level
-            if highest_level != float('-inf'):
-                can_learn_at_higher_level = any(
-                    int(move_level.split('L')[1]) > highest_level
-                    for move_level in levels
-                    if 'L' in move_level
-                )
-                if not can_learn_at_higher_level:
-                    moves_at_level_and_lower[move] = highest_level
-
-        attacks = []
-        if moves_at_level_and_lower:
-            # Convert the dictionary into a list of tuples for random selection
-            moves_and_levels_list = list(moves_at_level_and_lower.items())
-            random.shuffle(moves_and_levels_list)
-
-            # Pick up to 4 random moves and append them to the attacks list
-            for move, highest_level in moves_and_levels_list[:4]:
-                #attacks.append(f"{move} at level: {highest_level}")
-                attacks.append(f"{move}")
-
-        return attacks
+from .learnset_retrieval import get_random_moves_for_pokemon  # noqa: F401,E303 — re-export for backwards compat
 
 def save_fossil_pokemon(pokemon_id):
     # Create a dictionary to store the Pokémon's data
@@ -274,7 +213,10 @@ def save_fossil_pokemon(pokemon_id):
         "id": id,
         "ability": ability,
         "type": type,
+        # Keep legacy "stats" key AND add canonical "base_stats" so both
+        # dict-shape readers (caught vs to_dict) work.
         "stats": stats,
+        "base_stats": stats,
         "ev": ev,
         "iv": iv,
         "attacks": attacks,
@@ -283,6 +225,7 @@ def save_fossil_pokemon(pokemon_id):
         "growth_rate": growth_rate,
         "friendship": 0,
         "pokemon_defeated": 0,
+        "xp": 0,
         "everstone": False,
         "shiny": shiny_chance(),
         "captured_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -290,66 +233,12 @@ def save_fossil_pokemon(pokemon_id):
         "mega": False,
         "special_form": None,
         "tier": "Fossil",
+        "nature": "serious",
+        "held_item": None,
+        "is_favorite": False,
     }
     # Save to database
     db = mw.ankimon_db
     db.save_pokemon(caught_pokemon)
 
-def get_levelup_move_for_pokemon(pokemon_name, level):
-    """
-    Get a random move learned by a Pokémon at a specific level and lower, excluding moves that can be learned at a higher level.
-
-    Args:
-        pokemon_name (str): The name of the Pokémon.
-        level (int): The level at which to check for moves.
-
-    Returns:
-        str: A random move and its highest level.
-    """
-    # Load the JSON file
-    with open(learnset_path, "r", encoding="utf-8") as file:
-        learnsets = json.load(file)
-
-    # Normalize the Pokémon name to lowercase for consistency
-    pokemon_name = pokemon_name.lower()
-
-    # Retrieve the learnset for the specified Pokémon
-    pokemon_learnset = learnsets.get(pokemon_name, {})
-
-    # Create a dictionary to store moves and their corresponding highest levels
-    moves_at_level_and_lower = {}
-
-    # Loop through the learnset dictionary
-    for move, levels in pokemon_learnset.get('learnset', {}).items():
-        highest_level = float('-inf')  # Initialize with negative infinity
-        eligible_moves = []  # Store moves eligible for inclusion
-
-        for move_level in levels:
-            # Check if the move_level string contains 'L'
-            if 'L' in move_level:
-                # Extract the level from the move_level string
-                move_level_int = int(move_level.split('L')[1])
-
-                # Check if the move can be learned at the specified level or lower
-                if move_level_int <= level:
-                    # Update the highest_level if a higher level is found
-                    highest_level = max(highest_level, move_level_int)
-                    eligible_moves.append(move)
-
-        # Check if the move can be learned at a higher level
-        can_learn_at_higher_level = any(
-            'L' in move_level and int(move_level.split('L')[1]) > level
-            for move_level in levels
-        )
-
-        # Add the move and its highest level to the dictionary if not learnable at a higher level
-        if highest_level != float('-inf') and not can_learn_at_higher_level:
-            moves_at_level_and_lower[move] = highest_level
-
-    if moves_at_level_and_lower:
-        # Filter moves with the same highest level as the input level
-        eligible_moves = [
-            move for move, highest_level in moves_at_level_and_lower.items()
-            if highest_level == level
-        ]
-        return eligible_moves
+from .learnset_retrieval import get_levelup_move_for_pokemon  # noqa: F401,E303 — re-export for backwards compat

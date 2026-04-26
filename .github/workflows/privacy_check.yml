@@ -1,0 +1,95 @@
+name: Privacy Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-email-leaks:
+    name: Ensure No Private Emails Exposed
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify committer and author emails
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: |
+            ## 🛑 Privacy Check Failed
+            We noticed a private email address in your commits.
+            
+            This repository enforces strict email privacy to prevent spam and identity leaks.
+            
+            ### How to fix it
+            If you **DO NOT** care about your email being public, copy and paste this exact text into your PR description:
+            `- [x] I consent to my email being public in the commit history`
+            
+            **OTHERWISE**, to fix and hide your email:
+            1. Locate your noreply email in [GitHub Settings > Emails](https://github.com/settings/emails).
+            2. Enable **'Keep my email addresses private'**.
+            3. Update your local git config: `git config --global user.email "YOUR_NOREPLY_EMAIL"`
+            4. Rewrite your commits: `git rebase -i origin/${{ github.base_ref }} --exec "git commit --amend --reset-author --no-edit"`
+            5. Force push: `git push --force`
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          
+          # Check if the user has explicitly consented to public emails via the PR body
+          if [[ "$PR_BODY" == *"[x] I consent to my email being public in the commit history"* ]]; then
+            echo "User has explicitly opted-in to public emails via the PR description. Skipping check."
+            exit 0
+          fi
+          
+          echo "Checking commits from $BASE to $HEAD..."
+
+          # Extract all unique author and committer emails in the PR
+          EMAILS=$(git log --format="%ae%n%ce" $BASE..$HEAD | sort -u)
+          
+          # Get list of all historically approved emails in the base branch
+          git log --format="%ae%n%ce" $BASE | sort -u > /tmp/known_emails.txt
+          
+          HAS_ERROR=0
+          while IFS= read -r email; do
+            [[ -z "$email" ]] && continue
+            
+            # 1. Skip purely automated bot emails or the official GitHub noreply format
+            if [[ "$email" =~ "@users.noreply.github.com" || "$email" =~ "@noreply.github.com" ]]; then
+              continue
+            fi
+            
+            # 2. Skip if this exact email has already been approved and merged in the past (veteran)
+            if grep -Fxq "$email" /tmp/known_emails.txt; then
+              echo "Allowing known contributor email: $email"
+              continue
+            fi
+
+            echo "::error::Exposed personal email detected from new contributor: $email"
+            HAS_ERROR=1
+          done <<< "$EMAILS"
+          
+          if [ $HAS_ERROR -eq 1 ]; then
+            # Log to GitHub Actions UI
+            echo ""
+            echo "::group::How to fix email privacy issues"
+            echo "$COMMENT_BODY"
+            echo "::endgroup::"
+            
+            # Post the comment directly to the PR if not already posted
+            if ! gh api repos/$GH_REPO/issues/$PR_NUMBER/comments --jq '.[].body' | grep -q "Privacy Check Failed"; then
+              # Create a temp file since gh pr comment prefers --body-file over stdin sometimes.
+              echo "$COMMENT_BODY" > /tmp/pr_comment.md
+              gh pr comment $PR_NUMBER --body-file /tmp/pr_comment.md
+            fi
+
+            exit 1
+          fi
+          
+          echo "Success! All commit emails passed the privacy check."
