@@ -7,6 +7,9 @@ from typing import Optional
 
 from .resources import csv_file_items, csv_file_descriptions, effectiveness_chart_file_path
 
+_item_id_cache = {}
+_description_cache = {}
+
 def get_image_as_base64(path):
     with open(path, 'rb') as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
@@ -303,11 +306,17 @@ def calc_exp_gain(base_experience, w_pkmn_level):
     return exp
 
 def read_csv_file(csv_file):
+    global _item_id_cache
+    if csv_file in _item_id_cache:
+        return _item_id_cache[csv_file]
+        
     item_id_mapping = {}
     with open(csv_file, newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         for row in reader:
             item_id_mapping[row['name'].lower()] = int(row['item_id'])
+    
+    _item_id_cache[csv_file] = item_id_mapping
     return item_id_mapping
 
 def capitalize_each_word(item_name):
@@ -315,6 +324,10 @@ def capitalize_each_word(item_name):
     return ' '.join(word.capitalize() for word in item_name.replace("-", " ").split())
 
 def read_descriptions_csv(csv_file):
+    global _description_cache
+    if csv_file in _description_cache:
+        return _description_cache[csv_file]
+
     descriptions = {}
     with open(csv_file, newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
@@ -326,6 +339,8 @@ def read_descriptions_csv(csv_file):
             description = row[3].strip('"')
             key = (item_id, version_group_id, language_id)
             descriptions[key] = description
+            
+    _description_cache[csv_file] = descriptions
     return descriptions
 
 def get_id_and_description_by_item_name(item_name: str) -> str:

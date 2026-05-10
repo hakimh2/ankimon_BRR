@@ -20,7 +20,8 @@ class Reviewer_Manager:
         self.seconds = 0
         self.myseconds = 0
         self.hud_hidden = False 
-        self.hud_data = None    
+        self.hud_data = None
+        self._image_cache = {} # {file_path: base64_string}
 
         # Register the functions for the hooks
         gui_hooks.reviewer_will_end.append(self.reviewer_reset_life_bar_inject)
@@ -28,6 +29,11 @@ class Reviewer_Manager:
 
     def reviewer_reset_life_bar_inject(self):
         self.life_bar_injected = False
+
+    def _get_cached_image(self, file_path):
+        if file_path not in self._image_cache:
+            self._image_cache[file_path] = get_image_as_base64(file_path)
+        return self._image_cache[file_path]
 
     def get_boost_values_string(self, pokemon: PokemonObject, display_neutral_boost: bool=False) -> str:
         """Generates a formatted string representing the stat boost multipliers of a Pokémon."""
@@ -97,7 +103,7 @@ class Reviewer_Manager:
         if int(self.settings.get('gui.show_mainpkmn_in_reviewer')) > 0:
             pokemon_hp_percent = int((self.enemy_pokemon.hp / self.enemy_pokemon.max_hp) * 50) if self.enemy_pokemon.max_hp > 0 else 0
             mainpkmn_hp_percent = int((self.main_pokemon.hp / self.main_pokemon.max_hp) * 50) if self.main_pokemon.max_hp > 0 else 0
-            image_base64_mainpkmn = get_image_as_base64(main_pkmn_imagefile_path)
+            image_base64_mainpkmn = self._get_cached_image(main_pkmn_imagefile_path)
         else:
             pokemon_hp_percent = int((self.enemy_pokemon.hp / self.enemy_pokemon.max_hp) * 100) if self.enemy_pokemon.max_hp > 0 else 0
             mainpkmn_hp_percent = 0 # Not used in this mode
@@ -105,7 +111,7 @@ class Reviewer_Manager:
         enemy_hp_true_percent = (self.enemy_pokemon.hp / self.enemy_pokemon.max_hp) * 100 if self.enemy_pokemon.max_hp > 0 else 0
         main_hp_true_percent = (self.main_pokemon.hp / self.main_pokemon.max_hp) * 100 if self.main_pokemon.max_hp > 0 else 0
 
-        image_base64 = get_image_as_base64(pokemon_image_file)
+        image_base64 = self._get_cached_image(pokemon_image_file)
 
         # Build hud_html
         hud_html = '<div id="ankimon-hud">'

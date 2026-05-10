@@ -14,21 +14,25 @@ from ..resources import (
     next_lvl_file_path,
     learnset_path,
 )
+from .pokedex_functions import _load_pokedex_cache
+
+_next_lvl_cache = None
+
+def _load_next_lvl_cache():
+    global _next_lvl_cache
+    if _next_lvl_cache is None:
+        _next_lvl_cache = {}
+        with open(next_lvl_file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.DictReader(file, delimiter=';')
+            for row in csv_reader:
+                # Use the first fieldname to access the 'Level' column
+                level_str = row[list(row.keys())[0]].strip()
+                _next_lvl_cache[level_str] = row
+    return _next_lvl_cache
 
 def pick_random_gender(pokemon_name):
-    """
-    Randomly pick a gender for a given Pokémon based on its gender ratios.
-
-    Args:
-        pokemon_name (str): The name of the Pokémon.
-        pokedex_data (dict): Pokémon data loaded from the pokedex JSON file.
-
-    Returns:
-        str: "M" for male, "F" for female, or "Genderless" for genderless Pokémon.
-    """
-    with open(pokedex_path, 'r', encoding="utf-8") as file:
-        pokedex_data = json.load(file)
-    pokemon_name = pokemon_name.lower()  # Normalize Pokémon name to lowercase
+    pokedex_data = _load_pokedex_cache()
+    pokemon_name = pokemon_name.lower()
     pokemon = pokedex_data.get(pokemon_name)
     if not pokemon:
         genders = ["M", "F"]
@@ -37,7 +41,7 @@ def pick_random_gender(pokemon_name):
 
     gender_ratio = pokemon.get("genderRatio")
     if gender_ratio:
-        random_number = random.random()  # Generate a random number between 0 and 1
+        random_number = random.random()
         return "M" if random_number < gender_ratio["M"] else "F"
 
     genders = pokemon.get("gender")
@@ -45,7 +49,6 @@ def pick_random_gender(pokemon_name):
         return genders
 
     genders = ["M", "F"]
-    #genders = ["M", "♀"]
     gender = random.choice(genders)
     return gender
     # Randomly choose between "M" and "F"
@@ -70,23 +73,9 @@ def find_experience_for_level(group_growth_rate, level, remove_levelcap=True):
     # Specify the growth rate and level you're interested in
     growth_rate = f'{group_growth_rate}'
     if level < 100:
-        # Open the CSV file
-        csv_file_path = str(next_lvl_file_path)  # Replace 'your_file_path.csv' with the actual path to your CSV file
-        # Default if no row matches or the growth_rate column is unknown —
-        # prevents UnboundLocalError from breaking the level-up path.
-        experience = 0
-        with open(csv_file_path, 'r', encoding='utf-8') as file:
-            # Create a CSV reader
-            csv_reader = csv.DictReader(file, delimiter=';')
-
-            # Get the fieldnames from the CSV file
-            fieldnames = [field.strip() for field in csv_reader.fieldnames]
-
-            # Iterate through rows and find the experience for the specified growth rate and level
-            for row in csv_reader:
-                if row[fieldnames[0]] == str(level):  # Use the first fieldname to access the 'Level' column
-                    experience = row.get(growth_rate, 0)
-                    break
+        cache = _load_next_lvl_cache()
+        row = cache.get(str(level))
+        experience = row.get(growth_rate, 0) if row else 0
 
         return experience
     elif level > 99:

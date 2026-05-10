@@ -52,10 +52,24 @@ from ..singletons import (
 )
 
 
+_percentages_cache = {
+    'percentages': None,
+    'total_reviews': None,
+    'trainer_level': None,
+    'main_pokemon_level': None,
+}
+
 def modify_percentages(total_reviews, daily_average, trainer_level):
     """
     Modify Pokémon encounter percentages based on total reviews, trainer level, and main Pokémon level.
     """
+    # Performance Guard: Skip recalculation if inputs haven't changed
+    if (_percentages_cache['percentages'] is not None and
+        _percentages_cache['total_reviews'] == total_reviews and
+        _percentages_cache['trainer_level'] == trainer_level and
+        _percentages_cache['main_pokemon_level'] == main_pokemon.level):
+        return _percentages_cache['percentages']
+
     # Start with the base percentages
     percentages = {"Baby": 2, "Legendary": 0.5, "Mythical": 0.2, "Normal": 92.3, "Ultra": 5}
 
@@ -81,18 +95,18 @@ def modify_percentages(total_reviews, daily_average, trainer_level):
     if main_pokemon.level:
         # Define level thresholds for each tier
         level_thresholds = {
-            "Ultra": 30,  # Example threshold for Ultra Pokémon
-            "Legendary": 50,  # Example threshold for Legendary Pokémon
-            "Mythical": 75  # Example threshold for Mythical Pokémon
+            "Ultra": 30,
+            "Legendary": 50,
+            "Mythical": 75
         }
 
         for tier in ["Ultra", "Legendary", "Mythical"]:
             if main_pokemon.level < level_thresholds.get(tier, float("inf")):
-                percentages[tier] = 0  # Set percentage to 0 if the level requirement isn't met
+                percentages[tier] = 0
 
     # Example modification based on trainer level
     if trainer_level:
-        adjustment = 5  # Adjustment value for the example
+        adjustment = 5
         if trainer_level > 10:
             for tier in percentages:
                 if tier == "Normal":
@@ -104,8 +118,13 @@ def modify_percentages(total_reviews, daily_average, trainer_level):
     total = sum(percentages.values())
     for tier in percentages:
         percentages[tier] = (percentages[tier] / total) * 100 if total > 0 else 0
-    # this function gets called maybe 10 times per battle round, which is concerning.
-    # it could be rewritten to run ONLY when the change in review ratio is detected.
+
+    # Cache and return
+    _percentages_cache['percentages'] = percentages
+    _percentages_cache['total_reviews'] = total_reviews
+    _percentages_cache['trainer_level'] = trainer_level
+    _percentages_cache['main_pokemon_level'] = main_pokemon.level
+    
     return percentages
 
 
